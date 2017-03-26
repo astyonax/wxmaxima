@@ -3155,7 +3155,7 @@ void wxMaxima::EditMenu(wxCommandEvent& event)
 #endif
     config->Read(wxT("usepngCairo"),&pngcairo_old);
       
-    ConfigDialogue *configW = new ConfigDialogue(this);
+    ConfigDialogue *configW = new ConfigDialogue(this,m_console->m_configuration);
     configW->Centre(wxBOTH);
     if (configW->ShowModal() == wxID_OK)
     {
