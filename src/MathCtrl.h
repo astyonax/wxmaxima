@@ -563,21 +563,33 @@ public:
   //! Get the currently active EditorCell
   EditorCell *GetActiveCell()
     {
-      return dynamic_cast<EditorCell *>(m_cellPointers->m_activeCell);
+      if(m_cellPointers->m_activeCell != NULL)
+        return dynamic_cast<EditorCell *>(m_cellPointers->m_activeCell);
+      else
+        return NULL;
     }
   //! Tells us which cell the keyboard selection has started in
   EditorCell *KeyboardSelectionStart()
     {
-      return dynamic_cast<EditorCell *>(m_cellPointers->m_cellKeyboardSelectionStartedIn);
+      if(m_cellPointers->m_cellKeyboardSelectionStartedIn != NULL)
+        return dynamic_cast<EditorCell *>(m_cellPointers->m_cellKeyboardSelectionStartedIn);
+      else
+        return NULL;
     }
   EditorCell *MouseSelectionStart()
     {
-      return dynamic_cast<EditorCell *>(m_cellPointers->m_cellMouseSelectionStartedIn);
+      if(m_cellPointers->m_cellMouseSelectionStartedIn != NULL)
+        return dynamic_cast<EditorCell *>(m_cellPointers->m_cellMouseSelectionStartedIn);
+      else
+        return NULL;
     }
   
   EditorCell *SearchStart()
     {
-      return dynamic_cast<EditorCell *>(m_cellPointers->m_cellMouseSelectionStartedIn);
+      if(m_cellPointers->m_cellSearchStartedIn != NULL)
+        return dynamic_cast<EditorCell *>(m_cellPointers->m_cellSearchStartedIn);
+      else
+        return NULL;
     }
   int IndexSearchStartedAt()
     {
