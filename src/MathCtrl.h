@@ -92,8 +92,6 @@ private:
     Drawing is done from a wxPaintDC in OnPaint() instead.
   */
   wxClientDC *m_dc;
-  //! The central settings storage
-  Configuration *m_configuration;
   //! Where do we need to start the repainting of the worksheet?
   GroupCell *m_redrawStart;
   //! Do we need to redraw the worksheet?
@@ -560,6 +558,8 @@ private:
 
 
 public:
+  //! The central settings storage
+  Configuration *m_configuration;
   //! Get the currently active EditorCell
   EditorCell *GetActiveCell()
     {
@@ -629,7 +629,7 @@ public:
   //! To be called after enabling or disabling the visibility of code cells
   void CodeCellVisibilityChanged();
   //! Re-read the configuration
-  void UpdateConfig(){Configuration::Get()->ReadConfig();}
+  void UpdateConfig(){m_configuration->ReadConfig();}
   //! The name of the currently-opened file
   wxString m_currentFile;
 

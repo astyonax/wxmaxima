@@ -1111,7 +1111,7 @@ void wxMaxima::ReadFirstPrompt(wxString &data)
   {
     // Inform the user that the evaluation queue is empty.
     EvaluationQueueLength(0);
-    if ((Configuration::Get()->GetOpenHCaret())&&(m_console->GetActiveCell() == NULL))
+    if ((m_console->m_configuration->GetOpenHCaret())&&(m_console->GetActiveCell() == NULL))
       m_console->OpenNextOrCreateCell();
   }
   else
@@ -1254,7 +1254,7 @@ void wxMaxima::ReadMath(wxString &data)
 
     // Replace the name of the automatic label maxima has assigned to the output
     // by the one the user has used - if the configuration option to do so is set.
-    if(Configuration::Get()->UseUserLabels())
+    if(m_console->m_configuration->UseUserLabels())
     {
       if(m_console->m_evaluationQueue.GetUserLabel() != wxEmptyString)
       {
@@ -1409,7 +1409,7 @@ void wxMaxima::ReadPrompt(wxString &data)
 
     if (m_console->m_evaluationQueue.Empty())
     {
-      if ((Configuration::Get()->GetOpenHCaret())&&(m_console->GetActiveCell() == NULL))
+      if ((m_console->m_configuration->GetOpenHCaret())&&(m_console->GetActiveCell() == NULL))
         m_console->OpenNextOrCreateCell();
     }
   }
@@ -1467,7 +1467,7 @@ void wxMaxima::SetCWD(wxString file)
 
   // Tell the math parser where to search for local files.
   MathParser mParser(m_console->m_cellPointers);
-  Configuration::Get()->SetWorkingDirectory(wxFileName(file).GetPath());
+  m_console->m_configuration->SetWorkingDirectory(wxFileName(file).GetPath());
   
 #if defined __WXMSW__
   file.Replace(wxT("\\"), wxT("/"));
@@ -2072,7 +2072,7 @@ void wxMaxima::SetupVariables()
 
 wxString wxMaxima::GetCommand(bool params)
 {
-  Configuration *configuration = Configuration::Get();
+  Configuration *configuration = m_console->m_configuration;
   wxString parameters, command = configuration->MaximaLocation();
   wxConfig::Get()->Read(wxT("parameters"), &parameters);
 
@@ -2521,7 +2521,7 @@ void wxMaxima::UpdateMenus(wxUpdateUIEvent& event)
   else
     menubar->Check(menu_show_toolbar, false);
   
-  bool hidecode = !(Configuration::Get()->ShowCodeCells());
+  bool hidecode = !(m_console->m_configuration->ShowCodeCells());
   menubar->Check(ToolBar::tb_hideCode,hidecode);
   
   if (m_console->GetTree() != NULL)
@@ -2536,7 +2536,7 @@ void wxMaxima::UpdateMenus(wxUpdateUIEvent& event)
     menubar->Enable(MathCtrl::popid_merge_cells, false);
     menubar->Enable(wxID_PRINT, false);
   }
-  double zf = Configuration::Get()->GetZoomFactor();
+  double zf = m_console->m_configuration->GetZoomFactor();
   if (zf < Configuration::GetMaxZoomFactor())
     menubar->Enable(MathCtrl::menu_zoom_in, true);
   else
@@ -3316,10 +3316,10 @@ void wxMaxima::EditMenu(wxCommandEvent& event)
     }
     break;
   case MathCtrl::menu_zoom_in:
-    m_console->SetZoomFactor(Configuration::Get()->GetZoomFactor() + 0.1);
+    m_console->SetZoomFactor(m_console->m_configuration->GetZoomFactor() + 0.1);
     break;
   case MathCtrl::menu_zoom_out:
-    m_console->SetZoomFactor(Configuration::Get()->GetZoomFactor() - 0.1);
+    m_console->SetZoomFactor(m_console->m_configuration->GetZoomFactor() - 0.1);
     break;
   case menu_zoom_80:
     m_console->SetZoomFactor(0.8);
@@ -3343,7 +3343,7 @@ void wxMaxima::EditMenu(wxCommandEvent& event)
     ShowFullScreen( !IsFullScreen() );
     break;
   case ToolBar::tb_hideCode:
-    Configuration::Get()->ShowCodeCells(!Configuration::Get()->ShowCodeCells());
+    m_console->m_configuration->ShowCodeCells(!m_console->m_configuration->ShowCodeCells());
     m_console->CodeCellVisibilityChanged();
     break;
   case menu_remove_output:
@@ -3536,7 +3536,7 @@ void wxMaxima::MaximaMenu(wxCommandEvent& event)
     m_console->m_evaluationQueue.Clear();
     m_console->ResetInputPrompts();
     EvaluationQueueLength(0);
-    if(Configuration::Get()->RestartOnReEvaluation())
+    if(m_console->m_configuration->RestartOnReEvaluation())
       StartMaxima();
     m_console->AddDocumentToEvaluationQueue();
     // Inform the user about the length of the evaluation queue.
@@ -3549,7 +3549,7 @@ void wxMaxima::MaximaMenu(wxCommandEvent& event)
     m_console->m_evaluationQueue.Clear();
     m_console->ResetInputPrompts();
     EvaluationQueueLength(0);
-    if(Configuration::Get()->RestartOnReEvaluation())
+    if(m_console->m_configuration->RestartOnReEvaluation())
       StartMaxima();
     m_console->AddEntireDocumentToEvaluationQueue();
   // Inform the user about the length of the evaluation queue.
@@ -3562,7 +3562,7 @@ void wxMaxima::MaximaMenu(wxCommandEvent& event)
     m_console->m_evaluationQueue.Clear();
     m_console->ResetInputPrompts();
     EvaluationQueueLength(0);
-    if(Configuration::Get()->RestartOnReEvaluation())
+    if(m_console->m_configuration->RestartOnReEvaluation())
       StartMaxima();
     m_console->AddDocumentTillHereToEvaluationQueue();
     // Inform the user about the length of the evaluation queue.

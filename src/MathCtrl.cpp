@@ -2656,7 +2656,7 @@ void MathCtrl::OnKeyDown(wxKeyEvent& event)
             event.Skip();
             // Sometimes and only in certain zoom factors pressing enter doesn't change the
             // size of an EditorCell. Let's see if that helps...
-            GetActiveCell()->RecalculateWidths(Configuration::Get()->GetDefaultFontSize());
+            GetActiveCell()->RecalculateWidths(m_configuration->GetDefaultFontSize());
             Recalculate(dynamic_cast<GroupCell*>(GetActiveCell()->GetParent()));
             RequestRedraw();
           }
@@ -2883,7 +2883,7 @@ void MathCtrl::OnCharInActive(wxKeyEvent& event)
   
   m_blinkDisplayCaret = true;
 
-  m_configuration->SetClientWidth(GetClientSize().GetWidth() - m_configuration->GetCellBracketWidth() - Configuration::Get()->GetBaseIndent());
+  m_configuration->SetClientWidth(GetClientSize().GetWidth() - m_configuration->GetCellBracketWidth() - m_configuration->GetBaseIndent());
   m_configuration->SetClientHeight(GetClientSize().GetHeight());
 
   if (GetActiveCell()->IsDirty())
@@ -2893,7 +2893,7 @@ void MathCtrl::OnCharInActive(wxKeyEvent& event)
     
     int height = GetActiveCell()->GetHeight();
     //   int fontsize = m_configuration->GetDefaultFontSize();
-    m_configuration->SetClientWidth(GetClientSize().GetWidth() - m_configuration->GetCellBracketWidth() - Configuration::Get()->GetBaseIndent());
+    m_configuration->SetClientWidth(GetClientSize().GetWidth() - m_configuration->GetCellBracketWidth() - m_configuration->GetBaseIndent());
     m_configuration->SetClientHeight(GetClientSize().GetHeight());
     int fontsize = m_configuration->GetDefaultFontSize();
     
@@ -2903,7 +2903,7 @@ void MathCtrl::OnCharInActive(wxKeyEvent& event)
     
     if (height != GetActiveCell()->GetHeight() ||
         GetActiveCell()->GetWidth() + GetActiveCell()->m_currentPoint.x >=
-        GetClientSize().GetWidth() - m_configuration->GetCellBracketWidth() - Configuration::Get()->GetBaseIndent())
+        GetClientSize().GetWidth() - m_configuration->GetCellBracketWidth() - m_configuration->GetBaseIndent())
       needRecalculate = true;
   }
   
@@ -2941,7 +2941,7 @@ void MathCtrl::OnCharInActive(wxKeyEvent& event)
         rect.width = GetVirtualSize().x;
       }
       CalcScrolledPosition(rect.x, rect.y, &rect.x, &rect.y);
-      rect.x -= Configuration::Get()->GetCursorWidth() / 2;
+      rect.x -= m_configuration->GetCursorWidth() / 2;
       RedrawRect(rect);
     }
   }
@@ -3039,7 +3039,7 @@ void MathCtrl::SelectEditable(EditorCell *editor, bool top)
 {
   if((editor != NULL) &&
      (
-       (Configuration::Get()->ShowCodeCells()) ||
+       (m_configuration->ShowCodeCells()) ||
        (editor->GetType() != MC_TYPE_INPUT)
        )
     )
@@ -3499,17 +3499,17 @@ void MathCtrl::OnChar(wxKeyEvent& event)
  */
 void MathCtrl::GetMaxPoint(int* width, int* height) {
   MathCell* tmp = m_tree;
-  int currentHeight= Configuration::Get()->GetBaseIndent();
-  int currentWidth= Configuration::Get()->GetBaseIndent();
-  *width = Configuration::Get()->GetBaseIndent();
-  *height = Configuration::Get()->GetBaseIndent();
+  int currentHeight= m_configuration->GetBaseIndent();
+  int currentWidth= m_configuration->GetBaseIndent();
+  *width = m_configuration->GetBaseIndent();
+  *height = m_configuration->GetBaseIndent();
 
   while (tmp != NULL) {
     currentHeight += tmp->GetMaxHeight();
-    currentHeight += Configuration::Get()->GetGroupSkip();
+    currentHeight += m_configuration->GetGroupSkip();
     *height = currentHeight;
-    currentWidth = Configuration::Get()->GetBaseIndent() + tmp->GetWidth();
-    *width = MAX(currentWidth + Configuration::Get()->GetBaseIndent(), *width);
+    currentWidth = m_configuration->GetBaseIndent() + tmp->GetWidth();
+    *width = MAX(currentWidth + m_configuration->GetBaseIndent(), *width);
     tmp = tmp->m_next;
   }
 }
@@ -3519,7 +3519,7 @@ void MathCtrl::GetMaxPoint(int* width, int* height) {
  */
 void MathCtrl::AdjustSize()
 { 
-  int width= Configuration::Get()->GetBaseIndent(), height= Configuration::Get()->GetBaseIndent();
+  int width= m_configuration->GetBaseIndent(), height= m_configuration->GetBaseIndent();
   int clientWidth, clientHeight, virtualHeight;
 
   GetClientSize(&clientWidth, &clientHeight);
@@ -3649,14 +3649,14 @@ void MathCtrl::OnTimer(wxTimerEvent& event) {
         if (m_hCaretPosition == NULL)
         {
           rect.SetTop(0);
-          rect.SetBottom(Configuration::Get()->GetGroupSkip());
+          rect.SetBottom(m_configuration->GetGroupSkip());
         }
         else
         {
           rect = m_hCaretPosition->GetRect();
-          int caretY = ((int) Configuration::Get()->GetGroupSkip()) / 2 + rect.GetBottom() + 1;
-          rect.SetTop(caretY - Configuration::Get()->GetCursorWidth()/2);
-          rect.SetBottom(caretY + (Configuration::Get()->GetCursorWidth()+1)/2);
+          int caretY = ((int) m_configuration->GetGroupSkip()) / 2 + rect.GetBottom() + 1;
+          rect.SetTop(caretY - m_configuration->GetCursorWidth()/2);
+          rect.SetBottom(caretY + (m_configuration->GetCursorWidth()+1)/2);
         }
         rect.SetLeft(0);
         rect.SetRight(virtualsize_x);
@@ -4396,11 +4396,11 @@ bool MathCtrl::ExportToHTML(wxString file) {
       // Handle the label
       MathCell *out = tmp->GetLabel();
       
-      if(out ||  (Configuration::Get()->ShowCodeCells()))
+      if(out ||  (m_configuration->ShowCodeCells()))
         output<<wxT("\n\n<!-- Code cell -->\n\n\n");
 
       // Handle the input
-      if(Configuration::Get()->ShowCodeCells())
+      if(m_configuration->ShowCodeCells())
       {
         MathCell *prompt = tmp->GetPrompt();
         output<<wxT("<TABLE><TR><TD>\n");
@@ -4653,7 +4653,7 @@ void MathCtrl::CodeCellVisibilityChanged()
   // hide it
   if ((GetActiveCell() != NULL) &&
       (GetActiveCell()->GetType() == MC_TYPE_INPUT) &&
-      (!Configuration::Get()->ShowCodeCells())
+      (!m_configuration->ShowCodeCells())
     )
     SetHCaret(dynamic_cast<GroupCell *>(GetActiveCell()->GetParent()));
   RecalculateForce();
@@ -5234,7 +5234,7 @@ bool MathCtrl::ExportToMAC(wxString file)
     AddLineToFile(backupfile, wxT("/* [ Created with wxMaxima version ") + version + wxT(" ] */"), false);
   }
 
-  bool fixReorderedIndices = Configuration::Get()->FixReorderedIndices();
+  bool fixReorderedIndices = m_configuration->FixReorderedIndices();
   std::vector<int> cellMap;
   if (fixReorderedIndices)
   {
@@ -5380,7 +5380,7 @@ bool MathCtrl::ExportToWXMX(wxString file,bool markAsSaved)
   output << wxT("\n<wxMaximaDocument version=\"");
   output << DOCUMENT_VERSION_MAJOR << wxT(".");
   output << DOCUMENT_VERSION_MINOR << wxT("\" zoom=\"");
-  output << int(100.0 * Configuration::Get()->GetZoomFactor()) << wxT("\"");
+  output << int(100.0 * m_configuration->GetZoomFactor()) << wxT("\"");
 
   // **************************************************************************
   // Find out the number of the cell the cursor is at and save this information
@@ -6131,11 +6131,11 @@ void MathCtrl::SetActiveCell(EditorCell *cell, bool callRefresh)
   if (callRefresh) // = true default
     RequestRedraw();
 
-  if((cell != NULL) && (!Configuration::Get()->ShowCodeCells()) &&
+  if((cell != NULL) && (!m_configuration->ShowCodeCells()) &&
      (GetActiveCell()->GetType() == MC_TYPE_INPUT)
     )
   {
-    Configuration::Get()->ShowCodeCells(true);
+    m_configuration->ShowCodeCells(true);
     CodeCellVisibilityChanged();
   }
   if(scrollneeded && (cell != NULL))
@@ -6186,7 +6186,7 @@ void MathCtrl::ShowPoint(wxPoint point) {
   height -= wxSystemSettings::GetMetric(wxSYS_VTHUMB_Y);
   width  -= wxSystemSettings::GetMetric(wxSYS_HTHUMB_X);
 
-  Configuration *configuration=Configuration::Get();
+  Configuration *configuration=m_configuration;
   int fontsize_px = configuration->GetZoomFactor()*configuration->GetScale()*configuration->GetDefaultFontSize();
   if (
     (point.y - fontsize_px < view_y) ||
