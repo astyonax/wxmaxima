@@ -64,6 +64,9 @@
 class Configuration
 {
 public:
+  //! Set maxima's working directory
+  void SetWorkingDirectory(wxString dir){m_workingdir = dir;}
+  wxString GetWorkingDirectory(){return m_workingdir;}
   void ReadConfig();
   /*! The constructor 
     
@@ -343,6 +346,7 @@ public:
     }
   
 private:
+  wxString m_workingdir;
   wxString m_maximaLocation;
   //! Hide brackets that are not under the pointer
   bool m_hideBrackets;

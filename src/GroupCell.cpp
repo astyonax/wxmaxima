@@ -39,8 +39,9 @@
 #include "Bitmap.h"
 #include "list"
 
-GroupCell::GroupCell(int groupType, wxString initString) : MathCell()
+GroupCell::GroupCell(int groupType, CellPointers *cellPointers, wxString initString) : MathCell()
 {
+  m_cellPointers = cellPointers;
   m_inEvaluationQueue = false;
   m_lastInEvaluationQueue = false;
   m_inputLabel = NULL;
@@ -73,7 +74,7 @@ GroupCell::GroupCell(int groupType, wxString initString) : MathCell()
     m_inputLabel->SetType(MC_TYPE_MAIN_PROMPT);
   }
 
-  EditorCell *editor = new EditorCell();
+  EditorCell *editor = new EditorCell(m_cellPointers);
 
   switch (groupType) {
     case GC_TYPE_CODE:
@@ -183,7 +184,7 @@ void GroupCell::ResetInputLabelList()
 
 MathCell* GroupCell::Copy()
 {
-  GroupCell* tmp = new GroupCell(m_groupType);
+  GroupCell* tmp = new GroupCell(m_groupType,m_cellPointers);
   tmp->Hide(m_hide);
   CopyData(this, tmp);
   if (m_inputLabel)
@@ -281,10 +282,10 @@ void GroupCell::MarkAsDeleted()
   EditorCell *input = GetInput();
   if(input != NULL)
     input->MarkAsDeleted();
-  if(this == m_lastWorkingGroup)
-    m_lastWorkingGroup = NULL;
-  if(this == m_groupCellUnderPointer)
-    m_groupCellUnderPointer = NULL;  
+  if(this == m_cellPointers->m_lastWorkingGroup)
+    m_cellPointers->m_lastWorkingGroup = NULL;
+  if(this == m_cellPointers->m_groupCellUnderPointer)
+    m_cellPointers->m_groupCellUnderPointer = NULL;  
 }
 
 wxString GroupCell::TexEscapeOutputCell(wxString Input)
@@ -755,14 +756,14 @@ void GroupCell::Draw(wxPoint point, int fontsize)
 
 void GroupCell::CellUnderPointer(GroupCell *cell)
 {
-  if(m_groupCellUnderPointer != cell)
+  if(m_cellPointers->m_groupCellUnderPointer != cell)
   {
-    GroupCell *tmp = m_groupCellUnderPointer;
-    m_groupCellUnderPointer = cell;
+    GroupCell *tmp = dynamic_cast<GroupCell *>(m_cellPointers->m_groupCellUnderPointer);
+    m_cellPointers->m_groupCellUnderPointer = cell;
     if(tmp != NULL)
       tmp->DrawBracket();
-    if(m_groupCellUnderPointer != NULL)
-      m_groupCellUnderPointer->DrawBracket();
+    if(m_cellPointers->m_groupCellUnderPointer != NULL)
+      dynamic_cast<GroupCell *>(m_cellPointers->m_groupCellUnderPointer)->DrawBracket();
   }
 }
 
@@ -771,14 +772,15 @@ void GroupCell::DrawBracket()
   Configuration *configuration = Configuration::Get();
   bool drawBracket = !configuration->HideBrackets();
 
-  if(this == m_groupCellUnderPointer)
+  if(this == m_cellPointers->m_groupCellUnderPointer)
     drawBracket = true;
 
   wxDC& dc = configuration->GetDC();
 
   // Mark this GroupCell as selected if it is selected. Else clear the space we
   // will add brackets in
-  if((m_currentPoint.y >=m_selectionStart_px) && (m_currentPoint.y <=m_selectionEnd_px))
+  if((m_currentPoint.y >=m_cellPointers->m_selectionStart_px) &&
+     (m_currentPoint.y <=m_cellPointers->m_selectionEnd_px))
   {
 #if defined(__WXMAC__)
     dc.SetPen(wxNullPen); // wxmac doesn't like a border with wxXOR
@@ -1873,8 +1875,3 @@ bool GroupCell::Contains(GroupCell *cell)
   
   return false;
 }
-
-GroupCell *GroupCell::m_groupCellUnderPointer = NULL;
-GroupCell *GroupCell::m_lastWorkingGroup = NULL;
-int GroupCell::m_selectionStart_px = -1;
-int GroupCell::m_selectionEnd_px = -1;

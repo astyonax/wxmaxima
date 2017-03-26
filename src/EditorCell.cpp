@@ -38,10 +38,9 @@
 
 const wxString operators = wxT("+-*/^:=#'!\";$");
 
-wxString EditorCell::m_selectionString;
-
-EditorCell::EditorCell(wxString text) : MathCell()
+EditorCell::EditorCell(CellPointers *cellPointers,wxString text) : MathCell()
 {
+  m_cellPointers = cellPointers;
   m_oldViewportWidth = -1;
   m_oldZoomFactor = -1;
   m_oldScaleFactor = -1;
@@ -121,7 +120,7 @@ wxString EditorCell::PrependNBSP(wxString input)
 
 MathCell *EditorCell::Copy()
 {
-  EditorCell *tmp = new EditorCell();
+  EditorCell *tmp = new EditorCell(m_cellPointers);
   // We cannot use SetValue() here, since SetValue() sometimes has the task to change
   //  the cell's contents
   tmp->m_text = m_text;
@@ -218,17 +217,17 @@ EditorCell::~EditorCell()
 
 void EditorCell::MarkAsDeleted()
 {
-  if(m_cellMouseSelectionStartedIn == this)
-    m_cellMouseSelectionStartedIn = NULL;
-  if(m_cellKeyboardSelectionStartedIn == this)
-    m_cellKeyboardSelectionStartedIn = NULL;
-  if(m_cellSearchStartedIn == this)
+  if(m_cellPointers->m_cellMouseSelectionStartedIn == this)
+    m_cellPointers->m_cellMouseSelectionStartedIn = NULL;
+  if(m_cellPointers->m_cellKeyboardSelectionStartedIn == this)
+    m_cellPointers->m_cellKeyboardSelectionStartedIn = NULL;
+  if(m_cellPointers->m_cellSearchStartedIn == this)
   {
-    m_cellSearchStartedIn = NULL;
-    m_indexSearchStartedAt = 0;
+    m_cellPointers->m_cellSearchStartedIn = NULL;
+    m_cellPointers->m_indexSearchStartedAt = -1;
   }
-  if (m_activeCell == this)
-    m_activeCell = NULL;
+  if (m_cellPointers->m_activeCell == this)
+    m_cellPointers->m_activeCell = NULL;
 }
 
 wxString EditorCell::ToTeX()
@@ -592,14 +591,14 @@ void EditorCell::Draw(wxPoint point1, int fontsize)
     //
     // Mark text that coincides with the selection
     //
-    if (m_selectionString != wxEmptyString)
+    if (m_cellPointers->m_selectionString != wxEmptyString)
     {
       long start = 0;
       wxString text(m_text);
       text.Replace(wxT('\r'),wxT(' '));
-      while((start = text.find(m_selectionString,start)) != wxNOT_FOUND)
+      while((start = text.find(m_cellPointers->m_selectionString,start)) != wxNOT_FOUND)
       {
-        long end = start + m_selectionString.Length();
+        long end = start + m_cellPointers->m_selectionString.Length();
 
         // Mark only text that won't be marked in the next step:
         // This would not only be unneccessary but also could cause
@@ -2472,23 +2471,24 @@ wxString EditorCell::InterpretEscapeString(wxString txt)
 
 void EditorCell::DeactivateCursor()
 {  
-  if(m_activeCell != NULL)
+  if(m_cellPointers->m_activeCell != NULL)
   {  
-    m_activeCell->ClearSelection();
-    m_activeCell->m_paren1 = m_activeCell->m_paren2 = -1;
+    dynamic_cast<EditorCell *>(m_cellPointers->m_activeCell)->ClearSelection();
+    dynamic_cast<EditorCell *>(m_cellPointers->m_activeCell)->m_paren1 =
+      dynamic_cast<EditorCell *>(m_cellPointers->m_activeCell)->m_paren2 = -1;
   }
-  m_activeCell = NULL;
+  m_cellPointers->m_activeCell = NULL;
 }
 
 void EditorCell::ActivateCursor()
 {
-  if(m_activeCell != NULL)
+  if(m_cellPointers->m_activeCell != NULL)
     DeactivateCursor();
     
   SaveValue();
   m_displayCaret = true;
   m_hasFocus = true;
-  m_activeCell = this;
+  m_cellPointers->m_activeCell = this;
   
   ClearSelection();
   m_paren1 = m_paren2 = -1;
@@ -2838,13 +2838,13 @@ void EditorCell::SetSelection(int start, int end)
     m_selectionStart    = start;
     m_positionOfCaret   = m_selectionEnd = end;
     if (m_selectionStart == -1 || m_selectionEnd == -1)
-      m_selectionString = wxEmptyString;
+      m_cellPointers->m_selectionString = wxEmptyString;
     else
-      m_selectionString = m_text.SubString(
+      m_cellPointers->m_selectionString = m_text.SubString(
         MIN(m_selectionStart, m_selectionEnd),
         MAX(m_selectionStart, m_selectionEnd) - 1
         );
-    m_selectionString.Replace(wxT('\r'),wxT(' '));
+    m_cellPointers->m_selectionString.Replace(wxT('\r'),wxT(' '));
   }
 }
 
@@ -2933,7 +2933,7 @@ wxString EditorCell::SelectWordUnderCaret(bool selectParens, bool toRight)
   SetSelection(left,right);
   m_positionOfCaret = m_selectionEnd;
   if (left != right)
-    return m_selectionString;
+    return m_cellPointers->m_selectionString;
   else
     return wxString(wxT("%"));
 }
@@ -4146,7 +4146,7 @@ bool EditorCell::ReplaceSelection(wxString oldStr, wxString newStr, bool keepSel
 wxString EditorCell::GetSelectionString()
 {
   if(m_selectionStart>=0)
-    return m_selectionString;
+    return m_cellPointers->m_selectionString;
   else
     return wxEmptyString;
 }
@@ -4156,7 +4156,7 @@ void EditorCell::ClearSelection()
   if(SelectionActive())
   {
     m_selectionChanged = true;
-    m_selectionString = wxEmptyString;
+    m_cellPointers->m_selectionString = wxEmptyString;
     m_oldSelectionStart = m_oldSelectionEnd = m_selectionStart = m_selectionEnd = -1;
   }
 }
@@ -4250,8 +4250,3 @@ void EditorCell::CaretToPosition(int pos)
     FindMatchingParens();
 }
 
-EditorCell *EditorCell::m_cellMouseSelectionStartedIn = NULL;
-EditorCell *EditorCell::m_cellKeyboardSelectionStartedIn = NULL;
-EditorCell *EditorCell::m_cellSearchStartedIn = NULL;
-EditorCell *EditorCell::m_activeCell = NULL;
-int EditorCell::m_indexSearchStartedAt = -1;

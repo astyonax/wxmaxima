@@ -336,7 +336,7 @@ void wxMaxima::ConsoleAppend(wxString s, int type)
   // If we want to append an error message to the worksheet and there is no cell
   // that can contain it we need to create such a cell.
   if(m_console->GetTree() == NULL)
-    m_console->InsertGroupCells(new GroupCell(GC_TYPE_CODE,wxEmptyString));
+    m_console->InsertGroupCells(new GroupCell(GC_TYPE_CODE,m_console->m_cellPointers,wxEmptyString));
 
   m_dispReadOut = false;
   s.Replace(m_promptSuffix, wxEmptyString);
@@ -445,7 +445,8 @@ void wxMaxima::DoConsoleAppend(wxString s, int type, bool newLine,
 
   s.Replace(wxT("\n"), wxT(" "), true);
 
-  cell = m_MParser.ParseLine(s, type);
+  MathParser mParser(m_console->m_cellPointers);
+  cell = mParser.ParseLine(s, type);
 
   wxASSERT_MSG(cell != NULL,_("There was an error in generated XML!\n\n"
                               "Please report this as a bug."));
@@ -463,7 +464,7 @@ void wxMaxima::DoRawConsoleAppend(wxString s, int type)
   // If we want to append an error message to the worksheet and there is no cell
   // that can contain it we need to create such a cell.
   if(m_console->GetTree() == NULL)
-    m_console->InsertGroupCells(new GroupCell(GC_TYPE_CODE,wxEmptyString));
+    m_console->InsertGroupCells(new GroupCell(GC_TYPE_CODE,m_console->m_cellPointers,wxEmptyString));
 
   if(s.IsEmpty())
     return;
@@ -1465,7 +1466,8 @@ void wxMaxima::SetCWD(wxString file)
     return;
 
   // Tell the math parser where to search for local files.
-  m_MParser.SetWorkingDirectory(wxFileName(file).GetPath());
+  MathParser mParser(m_console->m_cellPointers);
+  Configuration::Get()->SetWorkingDirectory(wxFileName(file).GetPath());
   
 #if defined __WXMSW__
   file.Replace(wxT("\\"), wxT("/"));
@@ -1873,7 +1875,7 @@ bool wxMaxima::OpenXML(wxString file, MathCtrl *document, bool clearDocument)
 
 GroupCell* wxMaxima::CreateTreeFromXMLNode(wxXmlNode *xmlcells, wxString wxmxfilename)
 {
-  MathParser mp(wxmxfilename);
+  MathParser mp(m_console->m_cellPointers,wxmxfilename);
   GroupCell *tree = NULL;
   GroupCell *last = NULL;
 
@@ -5892,7 +5894,7 @@ void wxMaxima::InsertMenu(wxCommandEvent& event)
     break;
   case menu_add_pagebreak:
   case menu_format_pagebreak:
-    m_console->InsertGroupCells(new GroupCell(GC_TYPE_PAGEBREAK),
+    m_console->InsertGroupCells(new GroupCell(GC_TYPE_PAGEBREAK,m_console->m_cellPointers),
                                 m_console->GetHCaret());
     m_console->RecalculateForce();
     m_console->SetFocus();

@@ -76,9 +76,9 @@ wxXmlNode* MathParser::GetNextTag(wxXmlNode* node)
   return SkipWhitespaceNode(node);
 }
 
-MathParser::MathParser(wxString zipfile)
+MathParser::MathParser(CellPointers *cellPointers,wxString zipfile)
 {
-  m_workingDirectory = wxEmptyString;
+  m_cellPointers = cellPointers;
   m_ParserStyle = MC_TYPE_DEFAULT;
   m_FracStyle = FracCell::FC_NORMAL;
   m_highlight = false;
@@ -113,14 +113,14 @@ MathCell* MathParser::ParseCellTag(wxXmlNode* node)
   wxString sectioning_level = node->GetAttribute(wxT("sectioning_level"), wxT("0"));
 
   if (type == wxT("code")) {
-    group = new GroupCell(GC_TYPE_CODE);
+    group = new GroupCell(GC_TYPE_CODE,m_cellPointers);
     wxXmlNode *children = node->GetChildren();
     children = SkipWhitespaceNode(children);
     while (children) {
       if (children->GetName() == wxT("input")) {
         MathCell *editor = ParseTag(children->GetChildren());
         if(editor == NULL)
-          editor = new EditorCell(_("Bug: Missing contents"));
+          editor = new EditorCell(m_cellPointers,_("Bug: Missing contents"));
         group->SetEditableContent(editor->GetValue());
         delete editor;
       }
@@ -131,7 +131,7 @@ MathCell* MathParser::ParseCellTag(wxXmlNode* node)
       children = GetNextTag(children);
     }
   }  else if (type == wxT("image")) {
-    group = new GroupCell(GC_TYPE_IMAGE);
+    group = new GroupCell(GC_TYPE_IMAGE,m_cellPointers);
     wxXmlNode *children = node->GetChildren();
     children = SkipWhitespaceNode(children);
     while (children) {
@@ -146,22 +146,22 @@ MathCell* MathParser::ParseCellTag(wxXmlNode* node)
     }
   }
   else if (type == wxT("pagebreak")) {
-    group = new GroupCell(GC_TYPE_PAGEBREAK);
+    group = new GroupCell(GC_TYPE_PAGEBREAK,m_cellPointers);
   }
   else if (type == wxT("text")) {
-    group = new GroupCell(GC_TYPE_TEXT);
+    group = new GroupCell(GC_TYPE_TEXT,m_cellPointers);
     MathCell *editor = ParseTag(node->GetChildren());
     if(editor == NULL)
-      editor = new EditorCell(_("Bug: Missing contents"));
+      editor = new EditorCell(m_cellPointers,_("Bug: Missing contents"));
     group->SetEditableContent(editor->GetValue());
     delete editor;
   }
   else {
     // text types
     if (type == wxT("title"))
-      group = new GroupCell(GC_TYPE_TITLE);
+      group = new GroupCell(GC_TYPE_TITLE,m_cellPointers);
     else if (type == wxT("section"))
-      group = new GroupCell(GC_TYPE_SECTION);
+      group = new GroupCell(GC_TYPE_SECTION,m_cellPointers);
     else if (type == wxT("subsection"))
     {
       // We save subsubsections as subsections with a higher sectioning level:
@@ -170,13 +170,13 @@ MathCell* MathParser::ParseCellTag(wxXmlNode* node)
       // A sectioning level of the value 0 means that the file is too old to
       // provide a sectioning level.
       if(sectioning_level != wxT("4"))
-        group = new GroupCell(GC_TYPE_SUBSECTION);
+        group = new GroupCell(GC_TYPE_SUBSECTION,m_cellPointers);
       else
-        group = new GroupCell(GC_TYPE_SUBSUBSECTION);
+        group = new GroupCell(GC_TYPE_SUBSUBSECTION,m_cellPointers);
     }
     else if (type == wxT("subsubsection"))
     {
-      group = new GroupCell(GC_TYPE_SUBSUBSECTION);
+      group = new GroupCell(GC_TYPE_SUBSUBSECTION,m_cellPointers);
     }
     else
       return NULL;
@@ -234,7 +234,7 @@ MathCell *MathParser::HandleNullPointer(MathCell *cell)
 
 MathCell* MathParser::ParseEditorTag(wxXmlNode* node)
 {
-  EditorCell *editor = new EditorCell();
+  EditorCell *editor = new EditorCell(m_cellPointers);
   wxString type = node->GetAttribute(wxT("type"), wxT("input"));
   if (type == wxT("input"))
     editor->SetType(MC_TYPE_INPUT);
@@ -790,9 +790,9 @@ MathCell* MathParser::ParseTag(wxXmlNode* node, bool all)
 
             if(
               (!wxFileExists(filename)) &&
-              (wxFileExists(m_workingDirectory + wxT("/") + filename))
+              (wxFileExists(Configuration::Get()->GetWorkingDirectory() + wxT("/") + filename))
               )
-              filename = m_workingDirectory + wxT("/") + filename;
+              filename = Configuration::Get()->GetWorkingDirectory() + wxT("/") + filename;
             
             imageCell = new ImgCell(filename, false, NULL);
           }
