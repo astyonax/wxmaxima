@@ -27,7 +27,7 @@
 class AtCell : public MathCell
 {
 public:
-  AtCell();
+  AtCell(MathCell *parent, Configuration **config);
   ~AtCell();
   MathCell* Copy();
   void SetBase(MathCell *base);

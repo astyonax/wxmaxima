@@ -39,8 +39,10 @@
 #include "Bitmap.h"
 #include "list"
 
-GroupCell::GroupCell(int groupType, CellPointers *cellPointers, wxString initString) : MathCell()
+GroupCell::GroupCell(MathCell *parent, Configuration **config,int groupType, CellPointers *cellPointers, wxString initString) : MathCell()
 {
+  m_parent = parent;
+  m_configuration = config;
   m_cellPointers = cellPointers;
   m_inEvaluationQueue = false;
   m_lastInEvaluationQueue = false;

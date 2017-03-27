@@ -38,8 +38,10 @@
 #include "wx/config.h"
 #include <wx/mstream.h>
 
-SlideShow::SlideShow(wxFileSystem *filesystem,int framerate) : MathCell()
+SlideShow::SlideShow(MathCell *parent, Configuration **config,wxFileSystem *filesystem,int framerate) : MathCell()
 {
+  m_parent = parent;
+  m_configuration = config;
   m_size = m_displayed = 0;
   m_type = MC_TYPE_SLIDE;
   m_fileSystem = filesystem; // NULL when not loading from wxmx
@@ -91,7 +93,7 @@ void SlideShow::LoadImages(wxArrayString images)
   if (m_fileSystem) {
     for (int i=0; i<m_size; i++)
     {
-      Image *image =new Image(images[i],false,m_fileSystem);
+      Image *image =new Image(m_config,images[i],false,m_fileSystem);
       m_images.push_back(image);
     }
     m_fileSystem = NULL;
@@ -100,7 +102,7 @@ void SlideShow::LoadImages(wxArrayString images)
     for (int i=0; i<m_size; i++)
     {
 
-      Image *image = new Image(images[i]);
+      Image *image = new Image(m_config,images[i]);
         m_images.push_back(image);
     }
   m_displayed = 0;
@@ -113,7 +115,7 @@ MathCell* SlideShow::Copy()
 
   for(size_t i=0;i<m_images.size();i++)
   {
-    Image *image = new Image(*m_images[i]);
+    Image *image = new Image(m_config,*m_images[i]);
     tmp->m_images.push_back(image);
   }
 
@@ -170,7 +172,7 @@ void SlideShow::Draw(wxPoint point, int fontsize)
   // TODO: Enable this when unselecting text updates the right region.
   //if (!InUpdateRegion()) return;
   
-  Configuration *configuration = Configuration::Get();
+  Configuration *configuration = (*m_configuration);
   wxDC& dc = configuration->GetDC();
 
   if (DrawThisCell(point) && (m_images[m_displayed] != NULL))

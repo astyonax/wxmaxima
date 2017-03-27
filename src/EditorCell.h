@@ -138,7 +138,7 @@ public:
   //! Has the selection changed since the last draw event?
   bool m_selectionChanged;
   //! The constructor
-  EditorCell(CellPointers *cellPointers, wxString text = wxEmptyString);
+  EditorCell(MathCell *parent, Configuration **config,CellPointers *cellPointers, wxString text = wxEmptyString);
   ~EditorCell();
   /*! Tell this cell to remove it from all gui actions.
 

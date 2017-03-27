@@ -27,8 +27,10 @@
 
 #include "FunCell.h"
 
-FunCell::FunCell() : MathCell()
+FunCell::FunCell(MathCell *parent, Configuration **config) : MathCell()
 {
+  m_parent = parent;
+  m_configuration = config;
   m_nameCell = NULL;
   m_argCell = NULL;
 }

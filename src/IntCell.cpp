@@ -35,8 +35,10 @@
   #define INTEGRAL_FONT_SIZE 12
 #endif
 
-IntCell::IntCell() : MathCell()
+IntCell::IntCell(MathCell *parent, Configuration **config) : MathCell()
 {
+  m_parent = parent;
+  m_configuration = config;
   m_base = NULL;
   m_under = NULL;
   m_over = NULL;
@@ -122,7 +124,7 @@ void IntCell::SetVar(MathCell *var)
 
 void IntCell::RecalculateWidths(int fontsize)
 {
-  Configuration *configuration = Configuration::Get();
+  Configuration *configuration = (*m_configuration);
   double scale = configuration->GetScale();
 
   m_signSize = SCALE_PX(50, scale);
@@ -189,7 +191,7 @@ void IntCell::RecalculateWidths(int fontsize)
 
 void IntCell::RecalculateHeight(int fontsize)
 {
-  Configuration *configuration = Configuration::Get();
+  Configuration *configuration = (*m_configuration);
   double scale = configuration->GetScale();
 
   m_under->RecalculateHeightList(MAX(MC_MIN_SIZE, fontsize - 5));
@@ -227,7 +229,7 @@ void IntCell::RecalculateHeight(int fontsize)
 void IntCell::Draw(wxPoint point, int fontsize)
 {
   MathCell::Draw(point, fontsize);
-  Configuration *configuration = Configuration::Get();
+  Configuration *configuration = (*m_configuration);
 
   if (DrawThisCell(point) && InUpdateRegion())
   {

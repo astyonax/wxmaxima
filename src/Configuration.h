@@ -290,11 +290,6 @@ public:
       wxConfig::Get()->Write(wxT("restartOnReEvaluation"),m_restartOnReEvaluation = arg);
     }
 
-  //! Returns a pointer to the instance of Configuration that exists
-  static Configuration *Get() {return m_activeConfiguration;}
-  //! Returns a pointer to the top level configuration of the current window
-  static Configuration *GetTopLevel();
-
   //! Reads the size of the current worksheet's visible window. See SetCanvasSize
   wxSize GetCanvasSize(){return m_canvasSize;}
   //! Sets the size of the current worksheet's visible window.
@@ -401,7 +396,6 @@ private:
   int m_showLabelChoice;
   bool m_fixReorderedIndices;
   static bool m_showCodeCells;
-  static Configuration *m_activeConfiguration;
 };
 
 #endif // CONFIGURATION_H

@@ -89,7 +89,7 @@ enum {
 class MathCell
 {
 public:
-  MathCell();
+  MathCell(MathCell *parent, Configuration **config);
   //! Delete this list of cells.
   virtual ~MathCell();
   //! Sets the region that is to be updated on Draw()
@@ -616,6 +616,7 @@ protected:
   wxString m_altCopyText; 
 private:
   static bool m_clipToDrawRegion;
+  Configuration **m_configuration;
 };
 
 #endif // MATHCELL_H

@@ -30,8 +30,10 @@
 
 #define FRAC_DEC 1
 
-FracCell::FracCell() : MathCell()
+FracCell::FracCell(MathCell *parent, Configuration **config) : MathCell()
 {
+  m_parent = parent;
+  m_configuration = config;
   m_num = NULL;
   m_denom = NULL;
   m_last1 = NULL;
@@ -114,7 +116,7 @@ void FracCell::SetDenom(MathCell *denom)
 
 void FracCell::RecalculateWidths(int fontsize)
 {
-  Configuration *configuration = Configuration::Get();
+  Configuration *configuration = (*m_configuration);
   double scale = configuration->GetScale();
   if (m_isBroken || m_exponent)
   {
@@ -177,7 +179,7 @@ void FracCell::RecalculateWidths(int fontsize)
 
 void FracCell::RecalculateHeight(int fontsize)
 {
-  Configuration *configuration = Configuration::Get();
+  Configuration *configuration = (*m_configuration);
   double scale = configuration->GetScale();
   if (m_isBroken || m_exponent)
   {
@@ -212,7 +214,7 @@ void FracCell::RecalculateHeight(int fontsize)
 void FracCell::Draw(wxPoint point, int fontsize)
 {
   MathCell::Draw(point, fontsize);
-  Configuration *configuration = Configuration::Get();
+  Configuration *configuration = (*m_configuration);
 
   if (DrawThisCell(point) && InUpdateRegion())
   {
@@ -254,9 +256,9 @@ void FracCell::Draw(wxPoint point, int fontsize)
       m_denom->DrawList(denom, MAX(MC_MIN_SIZE, fontsize - FRAC_DEC));
       SetPen();
       if (m_fracStyle != FC_CHOOSE)
-        dc.DrawLine(point.x + m_horizontalGapLeft + Configuration::Get()->GetDefaultLineWidth() / 2,
+        dc.DrawLine(point.x + m_horizontalGapLeft + (*m_configuration)->GetDefaultLineWidth() / 2,
                     point.y,
-                    point.x + m_width - m_horizontalGapRight - Configuration::Get()->GetDefaultLineWidth() / 2,
+                    point.x + m_width - m_horizontalGapRight - (*m_configuration)->GetDefaultLineWidth() / 2,
                     point.y
           );
       UnsetPen();

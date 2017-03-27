@@ -30,8 +30,10 @@
 #include "Setup.h"
 #include "wx/config.h"
 
-TextCell::TextCell() : MathCell()
+TextCell::TextCell(MathCell *parent, Configuration **config) : MathCell()
 {
+  m_parent = parent;
+  m_configuration = config;
   m_displayedDigits_old = -1;
   m_text = wxEmptyString;
   m_displayedText = wxEmptyString;
@@ -49,8 +51,10 @@ TextCell::TextCell() : MathCell()
   ResetSize();
 }
 
-TextCell::TextCell(wxString text) : MathCell()
+TextCell::TextCell(MathCell *parent, Configuration **config,wxString text) : MathCell()
 {
+  m_parent = parent;
+  m_configuration = config;
   m_displayedDigits_old = -1;
   m_height = -1;
   m_labelWidth = -1;
@@ -65,7 +69,7 @@ TextCell::TextCell(wxString text) : MathCell()
 
 void TextCell::SetValue(const wxString &text)
 {
-  m_displayedDigits_old = Configuration::Get()->GetDisplayedDigits();
+  m_displayedDigits_old = (*m_configuration)->GetDisplayedDigits();
   m_text = text;
   ResetSize();
   m_text.Replace(wxT("\n"), wxEmptyString);
@@ -76,7 +80,7 @@ void TextCell::SetValue(const wxString &text)
   m_displayedText = m_text;
   if (m_textStyle == TS_NUMBER)
   {
-    unsigned int displayedDigits = Configuration::Get()->GetDisplayedDigits();
+    unsigned int displayedDigits = (*m_configuration)->GetDisplayedDigits();
     if (m_displayedText.Length() > displayedDigits)
     {
       int left = displayedDigits/3;
@@ -107,7 +111,7 @@ MathCell* TextCell::Copy()
 
 wxString TextCell::LabelWidthText()
 {
-  Configuration *configuration = Configuration::Get();
+  Configuration *configuration = (*m_configuration);
   wxString result;
 
   for(int i=0;i<configuration->GetLabelWidth();i++)
@@ -118,7 +122,7 @@ wxString TextCell::LabelWidthText()
 
 void TextCell::RecalculateWidths(int fontsize)
 {
-  Configuration *configuration = Configuration::Get();
+  Configuration *configuration = (*m_configuration);
   double scale = configuration->GetScale();
   SetAltText();
 
@@ -126,7 +130,7 @@ void TextCell::RecalculateWidths(int fontsize)
   // need to regenerate the info which number to show.
   if(
     (m_textStyle == TS_NUMBER) &&
-    (m_displayedDigits_old != Configuration::Get()->GetDisplayedDigits())
+    (m_displayedDigits_old != (*m_configuration)->GetDisplayedDigits())
     )
     SetValue(m_text);
   
@@ -207,7 +211,7 @@ void TextCell::RecalculateWidths(int fontsize)
 
 void TextCell::Draw(wxPoint point, int fontsize)
 {
-  Configuration *configuration = Configuration::Get();
+  Configuration *configuration = (*m_configuration);
   MathCell::Draw(point, fontsize);
   double scale = configuration->GetScale();
   wxDC& dc = configuration->GetDC();
@@ -287,7 +291,7 @@ void TextCell::Draw(wxPoint point, int fontsize)
 
 void TextCell::SetFont(int fontsize)
 {
-  Configuration *configuration = Configuration::Get();
+  Configuration *configuration = (*m_configuration);
   wxDC& dc = configuration->GetDC();
   double scale = configuration->GetScale();
 
@@ -503,8 +507,8 @@ wxString TextCell::ToTeX()
     text.Replace(wxT("Ü"), wxT("\\text{Ü}"));  
   }
 
-  if(((m_textStyle != TS_USERLABEL) && (!Configuration::Get()->ShowAutomaticLabels()))||
-    !Configuration::Get()->ShowLabels()
+  if(((m_textStyle != TS_USERLABEL) && (!(*m_configuration)->ShowAutomaticLabels()))||
+    !(*m_configuration)->ShowLabels()
     )
   {
     text = wxT("");
@@ -1112,7 +1116,7 @@ void TextCell::SetAltText()
       m_altJs = true;
     }
 #if wxUSE_UNICODE
-    m_altText = GetSymbolUnicode(Configuration::Get()->CheckKeepPercent());
+    m_altText = GetSymbolUnicode((*m_configuration)->CheckKeepPercent());
     if (m_altText != wxEmptyString)
       m_alt = true;
 #elif defined __WXMSW__

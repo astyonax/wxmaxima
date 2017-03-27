@@ -34,8 +34,10 @@
 #define PROD_SIGN "\x59"
 #define SUM_DEC 2
 
-SumCell::SumCell() : MathCell()
+SumCell::SumCell(MathCell *parent, Configuration **config) : MathCell()
 {
+  m_parent = parent;
+  m_configuration = config;
   m_base = NULL;
   m_under = NULL;
   m_over = NULL;
@@ -108,7 +110,7 @@ void SumCell::SetUnder(MathCell *under)
 
 void SumCell::RecalculateWidths(int fontsize)
 {
-  Configuration *configuration = Configuration::Get();
+  Configuration *configuration = (*m_configuration);
   double scale = configuration->GetScale();
 
   m_signSize = SCALE_PX(50, scale);
@@ -144,7 +146,7 @@ void SumCell::RecalculateWidths(int fontsize)
 
 void SumCell::RecalculateHeight(int fontsize)
 {
-  Configuration *configuration = Configuration::Get();
+  Configuration *configuration = (*m_configuration);
   double scale = configuration->GetScale();
 
   m_under->RecalculateHeightList(MAX(MC_MIN_SIZE, fontsize - SUM_DEC));
@@ -162,7 +164,7 @@ void SumCell::Draw(wxPoint point, int fontsize)
 {
   if (DrawThisCell(point))
   {
-    Configuration *configuration = Configuration::Get();
+    Configuration *configuration = (*m_configuration);
     wxDC& dc = configuration->GetDC();
     double scale = configuration->GetScale();
 
