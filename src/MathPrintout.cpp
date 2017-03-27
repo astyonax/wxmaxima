@@ -33,8 +33,15 @@
 #define PRINT_MARGIN_HORIZONTAL 5
 #define PRINT_MARGIN_VERTICAL 5
 
-MathPrintout::MathPrintout(wxString title) : wxPrintout(title)
+MathPrintout::MathPrintout(wxString title,Configuration **configuration) : wxPrintout(title)
 {
+  m_configuration = configuration;
+  wxDC* dc = GetDC();
+  *configuration = new Configuration(*dc);
+  (*configuration)->ShowBrackets((*configuration)->PrintBrackets());
+  // Inform the output routines that we are printing
+  (*configuration)->SetPrinter(true);
+  
   m_numberOfPages = 0;
   m_tree = NULL;
 }
@@ -42,6 +49,7 @@ MathPrintout::MathPrintout(wxString title) : wxPrintout(title)
 MathPrintout::~MathPrintout()
 {
   DestroyTree();
+  (*m_configuration) = m_oldconfig;
 }
 
 void MathPrintout::SetData(GroupCell* tree)
@@ -70,24 +78,11 @@ bool MathPrintout::OnPrintPage(int num)
   int marginX, marginY;
   GetPageMargins(&marginX, &marginY);
 
-
-  Configuration configuration(*dc);
-  configuration.ShowBrackets(configuration.PrintBrackets());
-  configuration.SetScale(ppiScale);
-  configuration.LineWidth_em(400);
   int pageWidth, pageHeight;
   GetPageSizePixels(&pageWidth, &pageHeight);
   double scale = GetPPIScale();
 
-  configuration.SetClientWidth(pageWidth - 2 * marginX
-                               - SCALE_PX(Configuration::Get()->GetBaseIndent(), scale));
-  configuration.SetClientHeight(pageHeight - 2 * marginY);
-  
-  configuration.SetIndent(marginX);
-  // Inform the output routines that we are printing
-  configuration.SetPrinter(true);
-  // Make sure that during print nothing is outside the crop rectangle
-
+  // Make sure that during print nothing is outside the crop rectangle  
   marginX += SCALE_PX(Configuration::Get()->GetBaseIndent(), ppiScale);
 
   GetScreenScale(&screenScaleX, &screenScaleY);
@@ -195,10 +190,7 @@ void MathPrintout::BreakPages()
 void MathPrintout::SetupData()
 {
   wxDC *dc = GetDC();
-  Configuration configuration(*dc);
-  configuration.ShowBrackets(configuration.PrintBrackets());
-  configuration.SetScale(GetPPIScale());
-  configuration.LineWidth_em(400);
+  (*m_configuration)->LineWidth_em(400);
   Recalculate();
   BreakPages();
 }
@@ -269,24 +261,23 @@ void MathPrintout::Recalculate()
   GroupCell* tmp = m_tree;
 
   wxDC *dc = GetDC();
-  Configuration configuration(*dc);
-  configuration.SetScale(GetPPIScale());
-  configuration.LineWidth_em(400);
 
   int marginX, marginY;
   GetPageMargins(&marginX, &marginY);
   int pageWidth, pageHeight;
   GetPageSizePixels(&pageWidth, &pageHeight);
-  int scale = configuration.GetScale();
+  int scale = (*m_configuration)->GetScale();
   
-  configuration.SetClientWidth(pageWidth - 2 * marginX
+  (*m_configuration)->SetClientWidth(pageWidth - 2 * marginX
                                - SCALE_PX(Configuration::Get()->GetBaseIndent(), scale));
-  configuration.SetClientHeight(pageHeight - 2 * marginY);
+  (*m_configuration)->SetClientHeight(pageHeight - 2 * marginY);
+
+  (*m_configuration)->SetScale(scale);
 
   Configuration::Get()->SetCanvasSize(wxSize(pageWidth-marginX,pageHeight-marginY));
   marginX += SCALE_PX(Configuration::Get()->GetBaseIndent(), scale);
-  configuration.SetIndent(marginX);
-  configuration.SetPrinter(true);
+  (*m_configuration)->SetIndent(marginX);
+  (*m_configuration)->SetPrinter(true);
   MathCell::ClipToDrawRegion(false);
 
   while (tmp != NULL)
