@@ -1,7 +1,7 @@
 // -*- mode: c++; c-file-style: "linux"; c-basic-offset: 2; indent-tabs-mode: nil -*-
 //
 //  Copyright (C) 2004-2015 Andrej Vodopivec <andrej.vodopivec@gmail.com>
-//            (C) 2016 Gunter Königsmann <wxMaxima@physikbuch.de>
+//            (C) 2016-2017 Gunter Königsmann <wxMaxima@physikbuch.de>
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@
 MathPrintout::MathPrintout(wxString title,Configuration **configuration) : wxPrintout(title)
 {
   m_configuration = configuration;
+  m_oldconfig = *m_configuration;
   wxDC* dc = GetDC();
   *configuration = new Configuration(*dc);
   (*configuration)->ShowBrackets((*configuration)->PrintBrackets());
@@ -49,7 +50,8 @@ MathPrintout::MathPrintout(wxString title,Configuration **configuration) : wxPri
 MathPrintout::~MathPrintout()
 {
   DestroyTree();
-  (*m_configuration) = m_oldconfig;
+  wxDELETE(*m_configuration);
+  *m_configuration = m_oldconfig;
 }
 
 void MathPrintout::SetData(GroupCell* tree)

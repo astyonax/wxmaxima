@@ -70,10 +70,10 @@ wxScrolledCanvas(
   )
 {
   m_cellPointers = new CellPointers;
-  m_groupCellUnderPointerRect = wxRect(0,0,0,0);
   m_dc = new wxClientDC(this);
   m_configuration = new Configuration(*m_dc,true);
   m_configuration->ReadConfig();
+  m_groupCellUnderPointerRect = wxRect(0,0,0,0);
   m_redrawStart = NULL;
   m_redrawRequested = false;
   m_autocompletePopup = NULL;
@@ -190,8 +190,8 @@ MathCtrl::~MathCtrl()
     DestroyTree();
   m_tree = NULL;
     
-  delete m_configuration;
-  delete m_dc;
+  wxDELETE(m_configuration);
+  wxDELETE(m_dc);
 }
 
 /***
@@ -1752,7 +1752,7 @@ bool MathCtrl::Copy(bool astext)
       {
         int bitmapScale = 3;
         wxConfig::Get()->Read(wxT("bitmapScale"), &bitmapScale);
-        Bitmap bmp_scaled(bitmapScale);
+        Bitmap bmp_scaled(&m_configuration,bitmapScale);
         if(bmp_scaled.SetData(tmp2,4000000))
         {
           bmp = bmp_scaled.GetBitmap();
@@ -3721,7 +3721,7 @@ bool MathCtrl::CopyBitmap() {
   int bitmapScale = 3;
   wxConfig::Get()->Read(wxT("bitmapScale"), &bitmapScale);
   
-  Bitmap bmp(bitmapScale);
+  Bitmap bmp(&m_configuration,bitmapScale);
   bmp.SetData(tmp);
 
   bool retval = bmp.ToClipboard();
@@ -3745,7 +3745,7 @@ wxSize MathCtrl::CopyToFile(wxString file) {
   {
     MathCell* tmp = CopySelection();
 
-    Bitmap bmp;
+    Bitmap bmp(&m_configuration);
     bmp.SetData(tmp);
 
     wxSize retval=bmp.ToFile(file);
@@ -3759,7 +3759,7 @@ wxSize MathCtrl::CopyToFile(wxString file, MathCell* start, MathCell* end,
 {
   MathCell* tmp = CopySelection(start, end, asData);
 
-  Bitmap bmp(scale);
+  Bitmap bmp(&m_configuration,scale);
   bmp.SetData(tmp);
 
   wxSize retval = bmp.ToFile(file);;
