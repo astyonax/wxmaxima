@@ -113,7 +113,7 @@ MathCell* SlideShow::Copy()
 
   for(size_t i=0;i<m_images.size();i++)
   {
-    Image *image = new Image(m_configuration,*m_images[i]);
+    Image *image = new Image(*m_images[i]);
     tmp->m_images.push_back(image);
   }
 

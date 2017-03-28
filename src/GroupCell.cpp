@@ -1024,7 +1024,7 @@ wxString GroupCell::ToTeX(wxString imgDir, wxString filename, int *imgCounter)
   if (imgCounter == NULL) return wxEmptyString;
   wxString str;
   // Now we might want to introduce some markdown:
-  MarkDownTeX MarkDown(m_configuration);
+  MarkDownTeX MarkDown(*m_configuration);
 
   switch (m_groupType)
   {
