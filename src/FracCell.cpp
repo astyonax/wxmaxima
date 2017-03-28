@@ -30,10 +30,8 @@
 
 #define FRAC_DEC 1
 
-FracCell::FracCell(MathCell *parent, Configuration **config) : MathCell()
+FracCell::FracCell(MathCell *parent, Configuration **config) : MathCell(parent,config)
 {
-  m_parent = parent;
-  m_configuration = config;
   m_num = NULL;
   m_denom = NULL;
   m_last1 = NULL;
@@ -72,7 +70,7 @@ void FracCell::SetParent(MathCell *parent)
 
 MathCell* FracCell::Copy()
 {
-  FracCell* tmp = new FracCell;
+  FracCell* tmp = new FracCell(m_group,m_configuration);
   CopyData(this, tmp);
   tmp->SetNum(m_num->CopyList());
   tmp->SetDenom(m_denom->CopyList());
@@ -380,10 +378,10 @@ void FracCell::SetupBreakUps()
 {
   if (m_fracStyle == FC_NORMAL)
   {
-    m_open1 = new TextCell(wxT("("));
-    m_close1 = new TextCell(wxT(")"));
-    m_open2 = new TextCell(wxT("("));
-    m_close2 = new TextCell(wxT(")"));
+    m_open1 = new TextCell(m_group,m_configuration,wxT("("));
+    m_close1 = new TextCell(m_group,m_configuration,wxT(")"));
+    m_open2 = new TextCell(m_group,m_configuration,wxT("("));
+    m_close2 = new TextCell(m_group,m_configuration,wxT(")"));
     if(m_num)
     {
       if (!m_num->IsCompound())
@@ -400,15 +398,15 @@ void FracCell::SetupBreakUps()
         m_close2->m_isHidden = true;
       }
     }
-    m_divide = new TextCell(wxT("/"));
+    m_divide = new TextCell(m_group,m_configuration,wxT("/"));
   }
   else
   {
-    m_open1 = new TextCell(wxT("binomial("));
-    m_close1 = new TextCell(wxT("x"));
-    m_open2 = new TextCell(wxT("x"));
-    m_close2 = new TextCell(wxT(")"));
-    m_divide = new TextCell(wxT(","));
+    m_open1 = new TextCell(m_group,m_configuration,wxT("binomial("));
+    m_close1 = new TextCell(m_group,m_configuration,wxT("x"));
+    m_open2 = new TextCell(m_group,m_configuration,wxT("x"));
+    m_close2 = new TextCell(m_group,m_configuration,wxT(")"));
+    m_divide = new TextCell(m_group,m_configuration,wxT(","));
     m_close1->m_isHidden = true;
     m_open2->m_isHidden = true;
   }

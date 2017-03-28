@@ -35,10 +35,8 @@
   #define INTEGRAL_FONT_SIZE 12
 #endif
 
-IntCell::IntCell(MathCell *parent, Configuration **config) : MathCell()
+IntCell::IntCell(MathCell *parent, Configuration **config) : MathCell(parent,config)
 {
-  m_parent = parent;
-  m_configuration = config;
   m_base = NULL;
   m_under = NULL;
   m_over = NULL;
@@ -66,7 +64,7 @@ void IntCell::SetParent(MathCell *parent)
 
 MathCell* IntCell::Copy()
 {
-  IntCell *tmp = new IntCell;
+  IntCell *tmp = new IntCell(m_group,m_configuration);
   CopyData(this, tmp);
   tmp->SetBase(m_base->CopyList());
   tmp->SetUnder(m_under->CopyList());
@@ -133,10 +131,10 @@ void IntCell::RecalculateWidths(int fontsize)
   m_base->RecalculateWidthsList(fontsize);
   m_var->RecalculateWidthsList(fontsize);
   if (m_under == NULL)
-    m_under = new TextCell;
+    m_under = new TextCell(m_group,m_configuration);
   m_under->RecalculateWidthsList(MAX(MC_MIN_SIZE, fontsize - 5));
   if (m_over == NULL)
-    m_over = new TextCell;
+    m_over = new TextCell(m_group,m_configuration);
   m_over->RecalculateWidthsList(MAX(MC_MIN_SIZE, fontsize - 5));
 
   if (configuration->CheckTeXFonts()) {

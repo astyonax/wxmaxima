@@ -88,7 +88,7 @@ public:
    */
   int GetInterEquationSkip()
     {
-    if (Configuration::Get()->ShowAutomaticLabels())
+    if (ShowAutomaticLabels())
       return 0;
     else  
       return GetZoomFactor()*GetScale()*m_mathFontSize/2;

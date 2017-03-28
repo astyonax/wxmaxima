@@ -28,10 +28,8 @@
 
 #include "MatrCell.h"
 
-MatrCell::MatrCell(MathCell *parent, Configuration **config) : MathCell()
+MatrCell::MatrCell(MathCell *parent, Configuration **config) : MathCell(parent,config)
 {
-  m_parent = parent;
-  m_configuration = config;
   m_matWidth = 0;
   m_matHeight = 0;
   m_specialMatrix = false;
@@ -51,7 +49,7 @@ void MatrCell::SetParent(MathCell *parent)
 
 MathCell* MatrCell::Copy()
 {
-  MatrCell *tmp = new MatrCell;
+  MatrCell *tmp = new MatrCell(m_group,m_configuration);
   CopyData(this, tmp);
   tmp->m_specialMatrix = m_specialMatrix;
   tmp->m_inferenceMatrix = m_inferenceMatrix;

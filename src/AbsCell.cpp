@@ -30,10 +30,8 @@
 #include "AbsCell.h"
 #include "TextCell.h"
 
-AbsCell::AbsCell(MathCell *parent, Configuration **config) : MathCell()
+AbsCell::AbsCell(MathCell *parent, Configuration **config) : MathCell(parent,config)
 {
-  m_parent = parent;
-  m_configuration = config;
   m_innerCell = NULL;
   m_open = new TextCell(parent,config,wxT("abs("));
   m_open -> DontEscapeOpeningParenthesis();
@@ -54,7 +52,7 @@ void AbsCell::SetParent(MathCell *parent)
 
 MathCell* AbsCell::Copy()
 {
-  AbsCell* tmp = new AbsCell;
+  AbsCell* tmp = new AbsCell(m_group,m_configuration);
   CopyData(this, tmp);
   tmp->SetInner(m_innerCell->CopyList());
   tmp->m_isBroken = m_isBroken;

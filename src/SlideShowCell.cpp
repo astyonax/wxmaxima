@@ -38,10 +38,8 @@
 #include "wx/config.h"
 #include <wx/mstream.h>
 
-SlideShow::SlideShow(MathCell *parent, Configuration **config,wxFileSystem *filesystem,int framerate) : MathCell()
+SlideShow::SlideShow(MathCell *parent, Configuration **config,wxFileSystem *filesystem,int framerate) : MathCell(parent,config)
 {
-  m_parent = parent;
-  m_configuration = config;
   m_size = m_displayed = 0;
   m_type = MC_TYPE_SLIDE;
   m_fileSystem = filesystem; // NULL when not loading from wxmx
@@ -93,7 +91,7 @@ void SlideShow::LoadImages(wxArrayString images)
   if (m_fileSystem) {
     for (int i=0; i<m_size; i++)
     {
-      Image *image =new Image(m_config,images[i],false,m_fileSystem);
+      Image *image =new Image(m_configuration,images[i],false,m_fileSystem);
       m_images.push_back(image);
     }
     m_fileSystem = NULL;
@@ -102,7 +100,7 @@ void SlideShow::LoadImages(wxArrayString images)
     for (int i=0; i<m_size; i++)
     {
 
-      Image *image = new Image(m_config,images[i]);
+      Image *image = new Image(m_configuration,images[i]);
         m_images.push_back(image);
     }
   m_displayed = 0;
@@ -110,12 +108,12 @@ void SlideShow::LoadImages(wxArrayString images)
 
 MathCell* SlideShow::Copy()
 {
-  SlideShow* tmp = new SlideShow;
+  SlideShow* tmp = new SlideShow(m_group,m_configuration);
   CopyData(this, tmp);
 
   for(size_t i=0;i<m_images.size();i++)
   {
-    Image *image = new Image(m_config,*m_images[i]);
+    Image *image = new Image(m_configuration,*m_images[i]);
     tmp->m_images.push_back(image);
   }
 

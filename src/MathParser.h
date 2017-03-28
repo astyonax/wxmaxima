@@ -44,11 +44,12 @@ inside a wxmx file
 class MathParser
 {
 public:
-  MathParser(CellPointers *cellPointers,wxString zipfile = wxEmptyString);
+  MathParser(Configuration **cfg,CellPointers *cellPointers,wxString zipfile = wxEmptyString);
   ~MathParser();
   MathCell* ParseLine(wxString s, int style = MC_TYPE_DEFAULT);
   MathCell* ParseTag(wxXmlNode* node, bool all = true);
 private:
+  
   MathCell *HandleNullPointer(MathCell *cell);
   /*! Get the next xml tag
 
@@ -102,6 +103,7 @@ private:
   int m_ParserStyle;
   int m_FracStyle;
   CellPointers *m_cellPointers;
+  Configuration **m_configuration;
   bool m_highlight;
   wxFileSystem *m_fileSystem; // used for loading pictures in <img> and <slide>
 };

@@ -90,6 +90,10 @@ private:
   long m_oldSelectionStart;
   long m_oldSelectionEnd;
 public:
+  //! The constructor
+  EditorCell(MathCell *parent, Configuration **config,
+             CellPointers *cellPointers, wxString text = wxEmptyString);
+  ~EditorCell();
   //! Which cell the blinking cursor is in?
   EditorCell *GetActiveCell(){return dynamic_cast<EditorCell *>(m_cellPointers->m_activeCell);}
   /*! Tells where the mouse selection has started.
@@ -137,9 +141,6 @@ public:
   wxArrayString GetWordList(){return m_wordList;}
   //! Has the selection changed since the last draw event?
   bool m_selectionChanged;
-  //! The constructor
-  EditorCell(MathCell *parent, Configuration **config,CellPointers *cellPointers, wxString text = wxEmptyString);
-  ~EditorCell();
   /*! Tell this cell to remove it from all gui actions.
 
     Normally the gui keeps various pointers to a cell: The cell below the cursor,

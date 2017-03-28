@@ -32,10 +32,8 @@
 
 #define SUBSUP_DEC 3
 
-SubSupCell::SubSupCell(MathCell *parent, Configuration **config) : MathCell()
+SubSupCell::SubSupCell(MathCell *parent, Configuration **config) : MathCell(parent,config)
 {
-  m_parent = parent;
-  m_configuration = config;
   m_baseCell = NULL;
   m_indexCell = NULL;
   m_exptCell = NULL;
@@ -54,7 +52,7 @@ void SubSupCell::SetParent(MathCell *parent)
 
 MathCell* SubSupCell::Copy()
 {
-  SubSupCell* tmp = new SubSupCell;
+  SubSupCell* tmp = new SubSupCell(m_group,m_configuration);
   CopyData(this, tmp);
   tmp->SetBase(m_baseCell->CopyList());
   tmp->SetIndex(m_indexCell->CopyList());

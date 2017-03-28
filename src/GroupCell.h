@@ -61,7 +61,7 @@ Items where a list of groupcells can be folded include
 class GroupCell: public MathCell
 {
 public:
-  GroupCell(MathCell *parent, Configuration **config,int groupType, CellPointers *cellPointers, wxString initString = wxEmptyString);
+  GroupCell(Configuration **config,int groupType, CellPointers *cellPointers, wxString initString = wxEmptyString);
   ~GroupCell();
   /*! Tell this cell to remove it from all gui actions.
 

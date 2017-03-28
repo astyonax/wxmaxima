@@ -28,10 +28,8 @@
 #include "DiffCell.h"
 #include "wx/config.h"
 
-DiffCell::DiffCell(MathCell *parent, Configuration **config) : MathCell()
+DiffCell::DiffCell(MathCell *parent, Configuration **config) : MathCell(parent,config)
 {
-  m_parent = parent;
-  m_configuration = config;
   m_baseCell = NULL;
   m_diffCell = NULL;
 }
@@ -47,7 +45,7 @@ void DiffCell::SetParent(MathCell *parent)
 
 MathCell* DiffCell::Copy()
 {
-  DiffCell* tmp = new DiffCell;
+  DiffCell* tmp = new DiffCell(m_group,m_configuration);
   CopyData(this, tmp);
   tmp->SetDiff(m_diffCell->CopyList());
   tmp->SetBase(m_baseCell->CopyList());

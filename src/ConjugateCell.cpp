@@ -28,10 +28,8 @@
 #include "ConjugateCell.h"
 #include "TextCell.h"
 
-ConjugateCell::ConjugateCell(MathCell *parent, Configuration **config) : MathCell()
+ConjugateCell::ConjugateCell(MathCell *parent, Configuration **config) : MathCell(parent,config)
 {
-  m_parent = parent;
-  m_configuration = config;
   m_innerCell = NULL;
   m_last = NULL;
   m_open = new TextCell(parent,config,wxT("conjugate("));
@@ -52,7 +50,7 @@ void ConjugateCell::SetParent(MathCell *parent)
 
 MathCell* ConjugateCell::Copy()
 {
-  ConjugateCell* tmp = new ConjugateCell;
+  ConjugateCell* tmp = new ConjugateCell(m_group,m_configuration);
   CopyData(this, tmp);
   tmp->SetInner(m_innerCell->CopyList());
   tmp->m_isBroken = m_isBroken;

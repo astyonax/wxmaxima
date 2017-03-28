@@ -51,10 +51,8 @@
   type == 1 ? 2*size:              \
       (3*size)/2)
 
-ParenCell::ParenCell(MathCell *parent, Configuration **config) : MathCell()
+ParenCell::ParenCell(MathCell *parent, Configuration **config) : MathCell(parent,config)
 {
-  m_parent = parent;
-  m_configuration = config;
   m_charWidth = 12;
   m_charWidth1 = 12;
   m_charHeight = 12;
@@ -84,7 +82,7 @@ void ParenCell::SetParent(MathCell *parent)
 
 MathCell* ParenCell::Copy()
 {
-  ParenCell *tmp = new ParenCell;
+  ParenCell *tmp = new ParenCell(m_group,m_configuration);
   CopyData(this, tmp);
   tmp->SetInner(m_innerCell->CopyList(), m_type);
   tmp->m_isBroken = m_isBroken;
@@ -123,7 +121,7 @@ void ParenCell::RecalculateWidths(int fontsize)
   Configuration *configuration = (*m_configuration);
   double scale = configuration->GetScale();
   if (m_innerCell == NULL)
-    m_innerCell = new TextCell;
+    m_innerCell = new TextCell(m_group,m_configuration);
 
   m_innerCell->RecalculateWidthsList(fontsize);
 

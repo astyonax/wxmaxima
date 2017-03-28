@@ -79,18 +79,6 @@ bool Configuration::MaximaFound(wxString location)
   return maximaFound;
 }
 
-Configuration *Configuration::GetTopLevel()
-{
-  Configuration *retval = Get();
-
-  if(retval != NULL)
-    while(retval->m_last != NULL)
-    {
-      retval = retval->m_last;
-    }
-  return retval;
-}
-
 void Configuration::ReadConfig()
 {
   Dirstructure dirstruct;

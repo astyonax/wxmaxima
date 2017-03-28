@@ -29,10 +29,8 @@
 
 #define SUB_DEC 2
 
-SubCell::SubCell(MathCell *parent, Configuration **config) : MathCell()
+SubCell::SubCell(MathCell *parent, Configuration **config) : MathCell(parent,config)
 {
-  m_parent = parent;
-  m_configuration = config;
   m_baseCell = NULL;
   m_indexCell = NULL;
 }
@@ -48,7 +46,7 @@ void SubCell::SetParent(MathCell *parent)
 
 MathCell* SubCell::Copy()
 {
-  SubCell* tmp = new SubCell;
+  SubCell* tmp = new SubCell(m_group,m_configuration);
   CopyData(this, tmp);
   tmp->SetBase(m_baseCell->CopyList());
   tmp->SetIndex(m_indexCell->CopyList());

@@ -31,7 +31,7 @@
 
 MathCell::MathCell(MathCell *parent, Configuration **config)
 {
-  m_parent = parent;
+  m_group = parent;
   m_configuration = config;
   m_next = NULL;
   m_previous = NULL;

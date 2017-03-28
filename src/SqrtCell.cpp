@@ -30,10 +30,8 @@
 
 #define SIGN_FONT_SCALE 2.0
 
-SqrtCell::SqrtCell(MathCell *parent, Configuration **config) : MathCell()
+SqrtCell::SqrtCell(MathCell *parent, Configuration **config) : MathCell(parent,config)
 {
-  m_parent = parent;
-  m_configuration = config;
   m_signSize = 50;
   m_signWidth = 18;
   m_signTop = m_signSize / 2;
@@ -41,9 +39,9 @@ SqrtCell::SqrtCell(MathCell *parent, Configuration **config) : MathCell()
   m_signType = 0;
   m_signFontScale = 0;
   m_innerCell = NULL;
-  m_open = new TextCell(wxT("sqrt("));
+  m_open = new TextCell(parent,config,wxT("sqrt("));
   m_open -> DontEscapeOpeningParenthesis();
-  m_close = new TextCell(wxT(")"));
+  m_close = new TextCell(parent,config,wxT(")"));
 }
 
 
@@ -60,7 +58,7 @@ void SqrtCell::SetParent(MathCell *parent)
 
 MathCell* SqrtCell::Copy()
 {
-  SqrtCell* tmp = new SqrtCell;
+  SqrtCell* tmp = new SqrtCell(m_group,m_configuration);
   CopyData(this, tmp);
   tmp->SetInner(m_innerCell->CopyList());
   tmp->m_isBroken = m_isBroken;

@@ -34,10 +34,8 @@
 #define PROD_SIGN "\x59"
 #define SUM_DEC 2
 
-SumCell::SumCell(MathCell *parent, Configuration **config) : MathCell()
+SumCell::SumCell(MathCell *parent, Configuration **config) : MathCell(parent,config)
 {
-  m_parent = parent;
-  m_configuration = config;
   m_base = NULL;
   m_under = NULL;
   m_over = NULL;
@@ -61,7 +59,7 @@ void SumCell::SetParent(MathCell *parent)
 
 MathCell* SumCell::Copy()
 {
-  SumCell *tmp = new SumCell;
+  SumCell *tmp = new SumCell(m_group,m_configuration);
   CopyData(this, tmp);
   tmp->SetBase(m_base->CopyList());
   tmp->SetUnder(m_under->CopyList());
@@ -120,7 +118,7 @@ void SumCell::RecalculateWidths(int fontsize)
   m_base->RecalculateWidthsList(fontsize);
   m_under->RecalculateWidthsList(MAX(MC_MIN_SIZE, fontsize - SUM_DEC));
   if (m_over == NULL)
-    m_over = new TextCell;
+    m_over = new TextCell(m_group,m_configuration);
   m_over->RecalculateWidthsList(MAX(MC_MIN_SIZE, fontsize - SUM_DEC));
 
   if (configuration->CheckTeXFonts())

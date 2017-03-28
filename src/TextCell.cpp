@@ -30,10 +30,8 @@
 #include "Setup.h"
 #include "wx/config.h"
 
-TextCell::TextCell(MathCell *parent, Configuration **config) : MathCell()
+TextCell::TextCell(MathCell *parent, Configuration **config) : MathCell(parent,config)
 {
-  m_parent = parent;
-  m_configuration = config;
   m_displayedDigits_old = -1;
   m_text = wxEmptyString;
   m_displayedText = wxEmptyString;
@@ -51,10 +49,8 @@ TextCell::TextCell(MathCell *parent, Configuration **config) : MathCell()
   ResetSize();
 }
 
-TextCell::TextCell(MathCell *parent, Configuration **config,wxString text) : MathCell()
+TextCell::TextCell(MathCell *parent, Configuration **config,wxString text) : MathCell(parent,config)
 {
-  m_parent = parent;
-  m_configuration = config;
   m_displayedDigits_old = -1;
   m_height = -1;
   m_labelWidth = -1;
@@ -95,7 +91,7 @@ void TextCell::SetValue(const wxString &text)
 
 MathCell* TextCell::Copy()
 {
-  TextCell *retval = new TextCell(wxEmptyString);
+  TextCell *retval = new TextCell(m_group,m_configuration,wxEmptyString);
   CopyData(this, retval);
   retval->m_text = wxString(m_text);
   retval->m_displayedText = wxString(m_displayedText);

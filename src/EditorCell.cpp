@@ -38,10 +38,9 @@
 
 const wxString operators = wxT("+-*/^:=#'!\";$");
 
-EditorCell::EditorCell(MathCell *parent, Configuration **config,CellPointers *cellPointers,wxString text) : MathCell()
+EditorCell::EditorCell(MathCell *parent, Configuration **config,
+                       CellPointers *cellPointers,wxString text) : MathCell(parent,config)
 {
-  m_parent = parent;
-  m_configuration = config;
   m_cellPointers = cellPointers;
   m_oldViewportWidth = -1;
   m_oldZoomFactor = -1;
@@ -122,7 +121,7 @@ wxString EditorCell::PrependNBSP(wxString input)
 
 MathCell *EditorCell::Copy()
 {
-  EditorCell *tmp = new EditorCell(m_cellPointers);
+  EditorCell *tmp = new EditorCell(m_group,m_configuration,m_cellPointers);
   // We cannot use SetValue() here, since SetValue() sometimes has the task to change
   //  the cell's contents
   tmp->m_text = m_text;

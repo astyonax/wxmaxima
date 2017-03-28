@@ -614,9 +614,9 @@ protected:
      \attention  m_altCopyText is not check in all cell types!
   */
   wxString m_altCopyText; 
+  Configuration **m_configuration;
 private:
   static bool m_clipToDrawRegion;
-  Configuration **m_configuration;
 };
 
 #endif // MATHCELL_H

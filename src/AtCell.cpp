@@ -27,10 +27,8 @@
 
 #include "AtCell.h"
 
-AtCell::AtCell(MathCell *parent, Configuration **config) : MathCell()
+AtCell::AtCell(MathCell *parent, Configuration **config) : MathCell(parent,config)
 {
-  m_parent = parent;
-  m_configuration = config;
   m_baseCell = NULL;
   m_indexCell = NULL;
 }
@@ -46,7 +44,7 @@ void AtCell::SetParent(MathCell *parent)
 
 MathCell* AtCell::Copy()
 {
-  AtCell* tmp = new AtCell;
+  AtCell* tmp = new AtCell(m_group,m_configuration);
   CopyData(this, tmp);
   tmp->SetBase(m_baseCell->CopyList());
   tmp->SetIndex(m_indexCell->CopyList());

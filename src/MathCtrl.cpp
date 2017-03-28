@@ -2359,8 +2359,7 @@ void MathCtrl::OpenQuestionCaret(wxString txt)
   // If we still haven't a cell to put the answer in we now create one.
   if(m_answerCell == NULL)
   {
-    m_answerCell = new EditorCell(m_cellPointers);
-    m_answerCell->SetParent(m_workingGroup);
+    m_answerCell = new EditorCell(m_workingGroup,&m_configuration,m_cellPointers);
     m_answerCell->SetType(MC_TYPE_INPUT);
     m_answerCell->SetValue(txt);
     m_answerCell->CaretToEnd();
@@ -2410,7 +2409,7 @@ void MathCtrl::OpenHCaret(wxString txt, int type)
   }
 
   // insert a new group cell
-  GroupCell *group = new GroupCell(type, m_cellPointers,txt);
+  GroupCell *group = new GroupCell(&m_configuration,type, m_cellPointers,txt);
   // check how much to unfold for this type
   if (m_hCaretPosition != NULL) {
     while (IsLesserGCType(type, m_hCaretPosition->GetGroupType())) {
@@ -3938,7 +3937,7 @@ bool MathCtrl::ExportToHTML(wxString file) {
   }
   int count = 0;
   GroupCell *tmp = m_tree;
-  MarkDownHTML MarkDown;    
+  MarkDownHTML MarkDown(m_configuration);    
 
   wxFileName::SplitPath(file, &path, &filename, &ext);
   imgDir_rel = filename + wxT("_htmlimg");
@@ -4688,7 +4687,7 @@ GroupCell* MathCtrl::CreateTreeFromWXMCode(wxArrayString *wxmLines)
         wxmLines->RemoveAt(0);
       }
 
-      cell = new GroupCell(GC_TYPE_TITLE, m_cellPointers,line);
+      cell = new GroupCell(&m_configuration,GC_TYPE_TITLE, m_cellPointers,line);
       if (hide) {
         cell->Hide(true);
         hide = false;
@@ -4711,7 +4710,7 @@ GroupCell* MathCtrl::CreateTreeFromWXMCode(wxArrayString *wxmLines)
         wxmLines->RemoveAt(0);
       }
 
-      cell = new GroupCell(GC_TYPE_SECTION, m_cellPointers,line);
+      cell = new GroupCell(&m_configuration,GC_TYPE_SECTION, m_cellPointers,line);
       if (hide) {
         cell->Hide(true);
         hide = false;
@@ -4734,7 +4733,7 @@ GroupCell* MathCtrl::CreateTreeFromWXMCode(wxArrayString *wxmLines)
         wxmLines->RemoveAt(0);
       }
 
-      cell = new GroupCell(GC_TYPE_SUBSECTION, m_cellPointers,line);
+      cell = new GroupCell(&m_configuration,GC_TYPE_SUBSECTION, m_cellPointers,line);
       if (hide) {
         cell->Hide(true);
         hide = false;
@@ -4757,7 +4756,7 @@ GroupCell* MathCtrl::CreateTreeFromWXMCode(wxArrayString *wxmLines)
         wxmLines->RemoveAt(0);
       }
 
-      cell = new GroupCell(GC_TYPE_SUBSUBSECTION, m_cellPointers,line);
+      cell = new GroupCell(&m_configuration,GC_TYPE_SUBSUBSECTION, m_cellPointers,line);
       if (hide) {
         cell->Hide(true);
         hide = false;
@@ -4780,7 +4779,7 @@ GroupCell* MathCtrl::CreateTreeFromWXMCode(wxArrayString *wxmLines)
         wxmLines->RemoveAt(0);
       }
 
-      cell = new GroupCell(GC_TYPE_TEXT, m_cellPointers,line);
+      cell = new GroupCell(&m_configuration,GC_TYPE_TEXT, m_cellPointers,line);
       if (hide) {
         cell->Hide(true);
         hide = false;
@@ -4804,7 +4803,7 @@ GroupCell* MathCtrl::CreateTreeFromWXMCode(wxArrayString *wxmLines)
         wxmLines->RemoveAt(0);
       }
 
-      cell = new GroupCell(GC_TYPE_IMAGE,m_cellPointers);
+      cell = new GroupCell(&m_configuration,GC_TYPE_IMAGE,m_cellPointers);
       cell->GetEditable()->SetValue(line);
       
       if (hide) {
@@ -4832,7 +4831,7 @@ GroupCell* MathCtrl::CreateTreeFromWXMCode(wxArrayString *wxmLines)
           wxmLines->RemoveAt(0);
         }
 
-        cell->SetOutput(new ImgCell(wxBase64Decode(line),imgtype));
+        cell->SetOutput(new ImgCell(NULL,&m_configuration,wxBase64Decode(line),imgtype));
       }
     }
     // Print input
@@ -4851,7 +4850,7 @@ GroupCell* MathCtrl::CreateTreeFromWXMCode(wxArrayString *wxmLines)
         wxmLines->RemoveAt(0);
       }
 
-      cell = new GroupCell(GC_TYPE_CODE, m_cellPointers,line);
+      cell = new GroupCell(&m_configuration,GC_TYPE_CODE, m_cellPointers,line);
       if (hide) {
         cell->Hide(true);
         hide = false;
@@ -4862,7 +4861,7 @@ GroupCell* MathCtrl::CreateTreeFromWXMCode(wxArrayString *wxmLines)
     {
       wxmLines->RemoveAt(0);
 
-      cell = new GroupCell(GC_TYPE_PAGEBREAK,m_cellPointers);
+      cell = new GroupCell(&m_configuration,GC_TYPE_PAGEBREAK,m_cellPointers);
     }
 
     else if (wxmLines->Item(0) == wxT("/* [wxMaxima: fold    start ] */"))
@@ -6373,7 +6372,7 @@ void MathCtrl::PasteFromClipboard(bool primary)
       {
         wxBitmapDataObject bitmap;
         wxTheClipboard->GetData(bitmap);
-        ImgCell *ic = new ImgCell(bitmap.GetBitmap());
+        ImgCell *ic = new ImgCell(group,&m_configuration,bitmap.GetBitmap());
         group->AppendOutput(ic);
       }
     }

@@ -30,10 +30,8 @@
 
 #define EXPT_DEC 2
 
-ExptCell::ExptCell(MathCell *parent, Configuration **config) : MathCell()
+ExptCell::ExptCell(MathCell *parent, Configuration **config) : MathCell(parent,config)
 {
-  m_parent = parent;
-  m_configuration = config;
   m_last1 = NULL;
   m_last2 = NULL;
   m_baseCell = NULL;
@@ -60,7 +58,7 @@ void ExptCell::SetParent(MathCell *parent)
 
 MathCell* ExptCell::Copy()
 {
-  ExptCell* tmp = new ExptCell;
+  ExptCell* tmp = new ExptCell(m_group,m_configuration);
   CopyData(this, tmp);
   tmp->SetBase(m_baseCell->CopyList());
   tmp->SetPower(m_powCell->CopyList());
