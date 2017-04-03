@@ -13,6 +13,7 @@ add_definitions (-DPREFIX=\"${CMAKE_INSTALL_PREFIX}\")
 add_subdirectory(locales)
 add_subdirectory(src)
 add_subdirectory(data)
+add_subdirectory(art)
 add_subdirectory(info)
 
 if (APPLE)

@@ -11,13 +11,13 @@ set(DATAFILES
         wxmaxima.svg
         autocomplete.txt)
 
-install(FILES ${DATAFILES}         DESTINATION share/wxmaxima)
+install(FILES ${DATAFILES}         DESTINATION share/wxMaxima)
 
 set(PIXMAPS
         text-x-wxmathml.svg
         text-x-wxmaxima-batch.svg)
 
-install(FILES ${PIXMAPS}           DESTINATION share/wxmaxima/pixmaps)
+install(FILES ${PIXMAPS}           DESTINATION share/wxMaxima/pixmaps)
 
 install(FILES wxmaxima             DESTINATION share/bash-completion/completions)
 install(FILES wxmaxima.1           DESTINATION share/man/man1)

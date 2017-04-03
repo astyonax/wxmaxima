@@ -1,0 +1,30 @@
+set(DATAFILES
+  dialog-information.png
+  gtk-new.png
+  media-playback-start.png
+  edit-copy.png
+  gtk-open.png
+  media-playback-startstop.png
+  edit-cut.png
+  gtk-paste.png
+  media-playback-stop.png
+  edit-find.png
+  gtk-preferences.png
+  showCurrentCell.png
+  go-bottom.png
+  gtk-print.png
+  software-update-urgent.png
+  gtk-copy.png
+  gtk-save.png
+  text.png
+  gtk-cut.png
+  gtk-select-all.png
+  view-refresh.png
+  gtk-find.png
+  gtk-stop.png
+  weather-clear.png
+  gtk-help.png
+  input.png
+  weather-few-clouds.png)
+
+install(FILES ${DATAFILES}         DESTINATION share/wxMaxima)
