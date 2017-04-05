@@ -52,11 +52,13 @@ set(CPACK_SOURCE_IGNORE_FILES
   "CMakeCache.txt"
   "CMakeFiles"
   "_CPack_Packages"
-  "^wxmaxima-.*\\\\.tgz$"
-  "^wxmaxima-.*\\\\.deb$"
-  "^wxmaxima-.*\\\\.rpm$"
-  "^wxmaxima-.*\\\\.bz2$"
-  "^wxmaxima-.*\\\\.gz$"
+  "wxmaxima-.*\\\\.tgz$"
+  "wxmaxima-.*\\\\.deb$"
+  "wxmaxima-.*\\\\.rpm$"
+  "wxmaxima-.*\\\\.bz2$"
+  "wxmaxima-.*\\\\.xz$"
+  "wxmaxima-.*\\\\.Z$"
+  "wxmaxima-.*\\\\.gz$"
   "${CPACK_SOURCE_IGNORE_FILES}")
 add_custom_target(dist COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
 include(CPack)
