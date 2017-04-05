@@ -41,6 +41,22 @@ set(CPACK_INSTALL_SCRIPT ${CMAKE_SOURCE_DIR}/cmake_install.cmake)
 
 # Build a tarball
 set(CPACK_SOURCE_IGNORE_FILES
-  "/build/;/.git/;/doxygen/html/.*;\\\\.gmo$;\\\\.mo$;~$;${CPACK_SOURCE_IGNORE_FILES}")
+  "build/"
+  ".git/"
+  "Doxygen/html/"
+  "\\\\.gmo$"
+  "\\\\.mo$"
+  "~$"
+  "CPackConfig.cmake"
+  "CPackSourceConfig.cmake"
+  "CMakeCache.txt"
+  "CMakeFiles"
+  "_CPack_Packages"
+  "^wxmaxima-.*\\\\.tgz$"
+  "^wxmaxima-.*\\\\.deb$"
+  "^wxmaxima-.*\\\\.rpm$"
+  "^wxmaxima-.*\\\\.bz2$"
+  "^wxmaxima-.*\\\\.gz$"
+  "${CPACK_SOURCE_IGNORE_FILES}")
 add_custom_target(dist COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
 include(CPack)
