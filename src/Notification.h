@@ -36,14 +36,19 @@
 class Notification: public wxNotificationMessage
 {
 public:
+  Notification();
   Notification(const wxString &title,
                const wxString &message=wxEmptyString,
                wxWindow *parent=NULL,
                int flags=wxICON_INFORMATION);
+  virtual void Show();
+  virtual bool Close();
+  bool IsShown(){return m_shown;}
 private:
-  wxWindow *m_parent;
+  bool m_shown;
 protected:
   void OnClick(wxCommandEvent &event);
+  void OnDismissed(wxCommandEvent &event);
 DECLARE_EVENT_TABLE()
 };
 

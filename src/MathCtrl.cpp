@@ -70,7 +70,7 @@ MathCtrl::MathCtrl(wxWindow *parent, int id, wxPoint position, wxSize size) :
 #endif
         )
 {
-  m_notificationMessage = NULL;
+  m_errorNotificationCell = NULL;
   m_cellPointers = new CellPointers;
   m_dc = new wxClientDC(this);
   m_configuration = new Configuration(*m_dc, true);
@@ -3650,12 +3650,9 @@ void MathCtrl::OnCharNoActive(wxKeyEvent &event)
 
 void MathCtrl::ClearNotification()
 {
-  if(m_notificationMessage != NULL)
-  {
-    m_notificationMessage->Close();
-    delete m_notificationMessage;
-  }
-  m_notificationMessage = NULL;
+  if(m_notificationMessage.IsShown())
+    m_notificationMessage.Close();
+  m_errorNotificationCell = NULL;
 }
 
 void MathCtrl::SetNotification(wxString message, int flags)
@@ -3664,12 +3661,11 @@ void MathCtrl::SetNotification(wxString message, int flags)
     return;
   
   ClearNotification();
-  m_notificationMessage = new Notification(wxT("wxMaxima"),
-                                                    message,
-                                                    this,
-                                                    flags);
-  if(m_notificationMessage)
-    m_notificationMessage->Show();
+  m_notificationMessage.SetTitle(wxT("wxMaxima"));
+  m_notificationMessage.SetMessage(message);
+  m_notificationMessage.SetParent(this);
+  m_notificationMessage.SetFlags(flags);
+  m_notificationMessage.Show();
 }
 /*****
  * OnChar handles key events. If we have an active cell, sends the

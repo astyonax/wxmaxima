@@ -28,24 +28,55 @@
  */
 
 #include "Notification.h"
+Notification::Notification():wxNotificationMessage()
+{
+  m_shown = false;
+  #if wxCHECK_VERSION(3, 1, 0)
+  AddAction(wxID_ANY,_("Focus window"));
+  #endif
+}
+
 Notification::Notification(const wxString &title,
 			   const wxString &message,
 			   wxWindow *parent,
 			   int flags): wxNotificationMessage (title, message, parent, flags)
 {
-  m_parent = parent;
+  m_shown = false;
+  #if wxCHECK_VERSION(3, 1, 0)
+  AddAction(wxID_ANY,_("Focus window"));
+  #endif
+}
+
+void Notification::Show()
+{
+  wxNotificationMessage::Show();
+  m_shown = true;
+}
+
+bool Notification::Close()
+{
+  m_shown = false;
+  return wxNotificationMessage::Close();
 }
 
 void Notification::OnClick(wxCommandEvent &event)
 {
-  if(m_parent != NULL)
-  {
-    m_parent->Raise();
-  }
+  if(GetParent() != NULL)
+    GetParent()->Raise();
+  m_shown = false;
+  Close();
+}
+
+void Notification::OnDismissed(wxCommandEvent &event)
+{
+  m_shown = false;
+  Close();
 }
 
 BEGIN_EVENT_TABLE(Notification, wxNotificationMessage)
-#ifdef EVT_NOTIFICATION_MESSAGE_CLICK
+  #if wxCHECK_VERSION(3, 1, 0)
   EVT_NOTIFICATION_MESSAGE_CLICK(Notification::OnClick)
-#endif
+  EVT_NOTIFICATION_MESSAGE_DISMISSED(Notification::OnDismissed)
+  EVT_NOTIFICATION_MESSAGE_ACTION(Notification::OnDismissed)
+  #endif
 END_EVENT_TABLE()

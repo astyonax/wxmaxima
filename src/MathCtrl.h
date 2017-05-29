@@ -81,7 +81,7 @@ private:
   //! Is our window currently active?
   bool m_windowActive;
   //! A error notification message
-  Notification *m_notificationMessage;
+  Notification m_notificationMessage;
   //! The rectangle the groupcell under the pointer is in
   wxRect m_groupCellUnderPointerRect;
 
@@ -623,6 +623,9 @@ public:
    */
   void SetNotification(wxString message, int flags = wxICON_INFORMATION);
 
+  //! The cell we signal an error for
+  GroupCell *m_errorNotificationCell;
+  
   //! Is called if this element looses or gets the focus
   void OnActivate(wxActivateEvent &event);
   //! The central settings storage
