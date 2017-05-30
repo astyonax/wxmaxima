@@ -31,9 +31,17 @@
 Notification::Notification():wxNotificationMessage()
 {
   m_shown = false;
+  m_parent = NULL;
+  m_errorNotificationCell = NULL;
   #if wxCHECK_VERSION(3, 1, 0)
-  AddAction(wxID_ANY,_("Focus window"));
-  #endif
+//  AddAction(wxID_ANY,_("Focus window"));
+  Connect(wxEVT_NOTIFICATION_MESSAGE_CLICK,
+          wxCommandEventHandler(Notification::OnClick),NULL,this);
+  Connect(wxEVT_NOTIFICATION_MESSAGE_DISMISSED,
+          wxCommandEventHandler(Notification::OnDismissed),NULL,this);
+  Connect(wxEVT_NOTIFICATION_MESSAGE_ACTION,
+          wxCommandEventHandler(Notification::OnClick),NULL,this);
+#endif
 }
 
 Notification::Notification(const wxString &title,
@@ -42,9 +50,23 @@ Notification::Notification(const wxString &title,
 			   int flags): wxNotificationMessage (title, message, parent, flags)
 {
   m_shown = false;
+  m_errorNotificationCell = NULL;
+  m_parent = parent;
   #if wxCHECK_VERSION(3, 1, 0)
-  AddAction(wxID_ANY,_("Focus window"));
+//  AddAction(wxID_ANY,_("Focus window"));
+  Connect(wxEVT_NOTIFICATION_MESSAGE_CLICK,
+          wxCommandEventHandler(Notification::OnClick),NULL,this);
+  Connect(wxEVT_NOTIFICATION_MESSAGE_DISMISSED,
+          wxCommandEventHandler(Notification::OnDismissed),NULL,this);
+  Connect(wxEVT_NOTIFICATION_MESSAGE_ACTION,
+          wxCommandEventHandler(Notification::OnClick),NULL,this);
   #endif
+}
+
+void Notification::SetParent(wxWindow *parent)
+{
+  m_parent = parent;
+  wxNotificationMessage::SetParent(parent);
 }
 
 void Notification::Show()
@@ -56,27 +78,25 @@ void Notification::Show()
 bool Notification::Close()
 {
   m_shown = false;
-  return wxNotificationMessage::Close();
+  m_errorNotificationCell = NULL;
+  if(IsShown())
+    return wxNotificationMessage::Close();
+  else
+    return false;
 }
 
 void Notification::OnClick(wxCommandEvent &event)
 {
   if(GetParent() != NULL)
+  {
     GetParent()->Raise();
+    GetParent()->Show();
+    GetParent()->SetFocus();
+  }
   m_shown = false;
-  Close();
 }
 
 void Notification::OnDismissed(wxCommandEvent &event)
 {
   m_shown = false;
-  Close();
 }
-
-BEGIN_EVENT_TABLE(Notification, wxNotificationMessage)
-  #if wxCHECK_VERSION(3, 1, 0)
-  EVT_NOTIFICATION_MESSAGE_CLICK(Notification::OnClick)
-  EVT_NOTIFICATION_MESSAGE_DISMISSED(Notification::OnDismissed)
-  EVT_NOTIFICATION_MESSAGE_ACTION(Notification::OnDismissed)
-  #endif
-END_EVENT_TABLE()
