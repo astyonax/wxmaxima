@@ -324,7 +324,7 @@ wxSize SlideShow::ToGif(wxString file)
     {
       wxGIFHandler gif;
       
-      if(gif.SaveAnimation(gifFrames,&outStream,false, 100 / GetFrameRate()))
+      if(gif.SaveAnimation(gifFrames, &outStream, false, 1000 / GetFrameRate()))
         return wxSize(m_images[1]->GetOriginalWidth(), m_images[1]->GetOriginalHeight());
     }
   }
