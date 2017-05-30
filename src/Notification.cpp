@@ -34,14 +34,17 @@ Notification::Notification(const wxString &title,
 			   int flags): wxNotificationMessage (title, message, parent, flags)
 {
   m_parent = parent;
+#if wxCHECK_VERSION(3,1,0)
+//  Connect(wxEVT_NOTIFICATION_MESSAGE_CLICK,
+//          wxCommandEventHandler(Notification::OnClick),
+//          NULL, this);
+#endif
 }
 
 void Notification::OnClick(wxCommandEvent &event)
 {
   if(m_parent != NULL)
-  {
     m_parent->Raise();
-  }
 }
 
 BEGIN_EVENT_TABLE(Notification, wxNotificationMessage)
