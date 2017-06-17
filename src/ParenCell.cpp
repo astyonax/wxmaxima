@@ -58,12 +58,13 @@ ParenCell::ParenCell(MathCell *parent, Configuration **config, CellPointers *cel
   m_charWidth1 = 12;
   m_charHeight = 12;
   m_charHeight1 = 12;
+  m_fontSize = 10;
   m_last1 = NULL;
   m_signSize = 50;
   m_signWidth = 18;
   m_signTop = m_signSize / 2;
   m_parenFontSize = 12;
-  m_bigParenType = PARENTHESIS_NORMAL;
+  m_bigParenType = ascii;
   m_innerCell = NULL;
   m_print = true;
   m_open = new TextCell(parent, config, cellPointers, wxT("("));
@@ -124,17 +125,100 @@ void ParenCell::SetInner(MathCell *inner, int type)
   while (inner->m_next != NULL)
     inner = inner->m_next;
   m_last1 = inner;
+  ResetSize();
+}
+
+void ParenCell::SetFont(int fontsize)
+{
+  Configuration *configuration = (*m_configuration);
+  wxDC &dc = configuration->GetDC();
+  double scale = configuration->GetScale();
+
+  wxString fontName;
+  wxFontStyle fontStyle;
+  wxFontWeight fontWeight;
+  wxFontEncoding fontEncoding;
+  bool underlined = configuration->IsUnderlined(TS_DEFAULT);
+
+  // Ensure a sane minimum font size
+  if (fontsize < 4)
+    fontsize = 4;
+  m_parenFontSize = fontsize;
+  
+  // The font size scales with the worksheet
+  int fontsize1 = (int) (((double) fontsize) * scale + 0.5);
+
+  fontEncoding = configuration->GetFontEncoding();
+
+  switch(m_bigParenType)
+  {
+  case big_texfont:
+  case assembled_texfont:
+    fontName = configuration->GetTeXCMEX();
+    break;
+
+  case assembled_dingbats: 
+    fontName = configuration->GetSymbolFontName();
+    fontEncoding = wxFONTENCODING_CP1250;
+    break;
+    
+  case small_texfont:
+    fontName = configuration->GetTeXCMRI();
+    break;
+    
+  default:
+    fontName = configuration->GetFontName(TS_DEFAULT);
+  }
+  fontStyle = configuration->IsItalic(TS_DEFAULT);
+  fontWeight = configuration->IsBold(TS_DEFAULT);
+  fontName = configuration->GetFontName(TS_DEFAULT);
+
+  wxFont font;
+  font.SetFamily(wxFONTFAMILY_MODERN);
+  font.SetFaceName(fontName);
+  font.SetEncoding(fontEncoding);
+  font.SetStyle(fontStyle);
+  font.SetWeight(fontWeight);
+  font.SetUnderlined(underlined);
+  font.SetEncoding(fontEncoding);
+  if (!font.IsOk())
+  {
+    font.SetFamily(wxFONTFAMILY_MODERN);
+    font.SetEncoding(fontEncoding);
+    font.SetStyle(fontStyle);
+    font.SetWeight(fontWeight);
+    font.SetUnderlined(underlined);
+  }
+
+  if (!font.IsOk())
+    font = *wxNORMAL_FONT;
+
+  font.SetPointSize(fontsize1);
+  wxASSERT_MSG(font.IsOk(),
+               _("Seems like something is broken with a font. Installing http://www.math.union.edu/~dpvc/jsmath/download/jsMath-fonts.html and checking \"Use JSmath fonts\" in the configuration dialogue should fix it."));
+  // A fallback if we have been completely unable to set a working font
+  if (!dc.GetFont().IsOk())
+    m_bigParenType = handdrawn;
+
+  if(m_bigParenType != handdrawn)
+    dc.SetFont(font);
 }
 
 void ParenCell::RecalculateWidths(int fontsize)
 {
   Configuration *configuration = (*m_configuration);
   double scale = configuration->GetScale();
+
+  // Add a dummy contents to empty parenthesis
   if (m_innerCell == NULL)
     m_innerCell = new TextCell(m_group, m_configuration, m_cellPointers);
 
   m_innerCell->RecalculateWidthsList(fontsize);
 
+
+  // Do we want to use TeX fonts? This is useful on windows if our normal font
+  // lacks the unicode characters we need for drawing big parenthesis and we don't
+  // want to use ugly hand-drawn parenthesis.
   if (configuration->CheckTeXFonts())
   {
     wxDC &dc = configuration->GetDC();
@@ -145,92 +229,75 @@ void ParenCell::RecalculateWidths(int fontsize)
     ///  make sure there is no infinite loop!
     // Avoid a possible infinite loop.
     if (size < 2) size = 12;
+    if (fontsize < 2) fontsize = 12;
 
+    
     int fontsize1 = (int) ((fontsize * scale + 0.5));
-
     if (size <= 2 * fontsize1)
     {
-      m_bigParenType = PARENTHESIS_NORMAL;
-      wxFont font(fontsize1, wxFONTFAMILY_MODERN,
-                  wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false,
-                  configuration->GetTeXCMRI());
-      if (!font.IsOk())
-        font = *wxNORMAL_FONT;
-      font.SetPointSize(fontsize1);
-      dc.SetFont(font);
+      m_bigParenType = small_texfont;
+      SetFont(fontsize);
       dc.GetTextExtent(wxT("("), &m_signWidth, &m_signSize);
     }
     else
     {
       if (size <= 4.1 * fontsize1)
       {
-        m_bigParenType = PARENTHESIS_BIG;
-        wxFont font(fontsize1, wxFONTFAMILY_MODERN,
-                    wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false,
-                    configuration->GetTeXCMEX());
-        if (!font.IsOk())
-          font = *wxNORMAL_FONT;
-        font.SetPointSize(fontsize1);
-        dc.SetFont(font);
+        m_bigParenType = big_texfont;
+        SetFont(fontsize);
         dc.GetTextExtent(wxT(PAREN_OPEN), &m_signWidth, &m_signSize);
       }
       else
       {
-        m_bigParenType = PARENTHESIS_ASSEMBLED;
-#ifdef __WXMSW__
+        m_bigParenType = assembled_texfont;
+        SetFont(fontsize);
         dc.GetTextExtent(wxT(PAREN_LEFT_TOP),
                          &m_signWidth, &m_signSize);
-#else
-        dc.GetTextExtent(wxT(PAREN_OPEN),
-                         &m_signWidth, &m_signSize);
-#endif
       }
     }
 
-    if (m_bigParenType != PARENTHESIS_ASSEMBLED)
+    // Now determine the character sizes we need.
+    if (m_bigParenType == assembled_texfont)
     {
-      m_parenFontSize = fontsize;
-      fontsize1 = (int) ((m_parenFontSize * scale + 0.5));
-
-      if (m_signSize > 0)
-      {
-        int i = 0;
-        while (m_signSize < TRANSFORM_SIZE(m_bigParenType, size) && i < 40)
-        {
-          int fontsize1 = (int) ((++m_parenFontSize * scale + 0.5));
-          wxFont font(fontsize1, wxFONTFAMILY_MODERN,
-                      wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false,
-                      m_bigParenType == 0 ?
-                      configuration->GetTeXCMRI() :
-                      configuration->GetTeXCMEX());
-          if (!font.IsOk())
-            font = *wxNORMAL_FONT;
-          font.SetPointSize(fontsize1);
-          dc.SetFont(font);
-          dc.GetTextExtent(m_bigParenType == 0 ? wxT("(") :
-                           m_bigParenType == 1 ? wxT(PAREN_OPEN) :
-                           wxT(PAREN_OPEN_TOP),
-                           &m_signWidth, &m_signSize);
-          // Avoid an infinite loop.
-          if (m_signSize < 2) m_signSize = 2;
-          i++;
-        }
-      }
+      SetFont(fontsize);
+      dc.GetTextExtent(wxT(PAREN_OPEN), &m_signWidth, &m_signSize);
     }
     else
     {
       m_parenFontSize = fontsize;
       fontsize1 = (int) ((m_parenFontSize * scale + 0.5));
-      wxFont font(fontsize1, wxFONTFAMILY_MODERN,
-                  wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false,
-                  m_bigParenType < 1 ?
-                  configuration->GetTeXCMRI() :
-                  configuration->GetTeXCMEX());
-      if (!font.IsOk())
-        font = *wxNORMAL_FONT;
-      font.SetPointSize(fontsize1);
-      dc.SetFont(font);
-      dc.GetTextExtent(wxT(PAREN_OPEN), &m_signWidth, &m_signSize);
+
+      if (m_signSize < 2)
+        m_signSize = 2;
+
+      if (m_signSize > 0)
+      {
+        // The i avoids an infinite loop.
+        int i = 0;
+        while (m_signSize < TRANSFORM_SIZE(m_bigParenType, size) && i < 40)
+        {
+          int fontsize1 = (int) ((++m_parenFontSize * scale + 0.5));
+
+          wxString openParentChar;
+          switch(m_bigParenType)
+          {            
+          case big_texfont:
+            openParentChar = PAREN_OPEN;
+            break;
+            
+          case assembled_texfont:
+            openParentChar = PAREN_OPEN_TOP;
+            break;
+
+          default:
+            openParentChar = wxT("(");
+            break;
+          }
+          SetFont(fontsize);
+          dc.GetTextExtent(openParentChar,&m_signWidth, &m_signSize);
+          i++;
+        }
+      }
     }
 
     m_signTop = m_signSize / 5;
@@ -273,23 +340,11 @@ void ParenCell::RecalculateHeight(int fontsize)
   m_height = m_innerCell->GetMaxHeight() + SCALE_PX(2, scale);
   m_center = m_innerCell->GetMaxCenter() + SCALE_PX(1, scale);
 
-#if defined __WXMSW__
-  if (!configuration->CheckTeXFonts())
-  {
-    wxDC& dc = configuration->GetDC();
-    int fontsize1 = (int) ((fontsize * scale + 0.5));
-    wxFont font(fontsize1, wxFONTFAMILY_MODERN,
-                wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false,
-                configuration->GetFontName());
-    if(!font.IsOk())
-      font = *wxNORMAL_FONT;
-    font.SetPointSize(fontsize1);
-    dc.SetFont(font);
-    dc.GetTextExtent(wxT("("), &m_charWidth1, &m_charHeight1);
-    if(m_charHeight1 < 2)
-      m_charHeight1 = 2;
-  }
-#endif
+  SetFont(fontsize);
+  wxDC& dc = configuration->GetDC();
+  dc.GetTextExtent(wxT("("), &m_charWidth1, &m_charHeight1);
+  if(m_charHeight1 < 2)
+    m_charHeight1 = 2;
 
   m_open->RecalculateHeightList(fontsize);
   m_close->RecalculateHeightList(fontsize);
@@ -311,34 +366,35 @@ void ParenCell::Draw(wxPoint point, int fontsize)
     wxDC &dc = configuration->GetDC();
     wxPoint in(point);
 
-    if (configuration->CheckTeXFonts())
-    {
-      in.x = point.x + m_signWidth;
-      SetForeground();
-      int fontsize1 = (int) ((m_parenFontSize * scale + 0.5));
-      wxFont font(fontsize1, wxFONTFAMILY_MODERN,
-                  wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false,
-                  m_bigParenType < 1 ?
-                  configuration->GetTeXCMRI() :
-                  configuration->GetTeXCMEX());
-      if (!font.IsOk())
-        font = *wxNORMAL_FONT;
-      font.SetPointSize(fontsize1);
-      dc.SetFont(font);
-      if (m_bigParenType < 2)
-      {
-        dc.DrawText(m_bigParenType == 0 ? wxT("(") :
-                    wxT(PAREN_OPEN),
-                    point.x,
-                    point.y - m_center + SCALE_PX(MC_TEXT_PADDING, scale) -
-                    (m_bigParenType > 0 ? m_signTop : 0));
-        dc.DrawText(m_bigParenType == 0 ? wxT(")") :
-                    wxT(PAREN_CLOSE),
-                    point.x + m_signWidth + m_innerCell->GetFullWidth(scale),
-                    point.y - m_center + SCALE_PX(MC_TEXT_PADDING, scale) -
-                    (m_bigParenType > 0 ? m_signTop : 0));
-      }
-      else
+    in.x = point.x + m_signWidth;
+    SetForeground();
+    SetFont(m_parenFontSize);
+    
+    switch(m_bigParenType)
+    {            
+    case ascii:
+    case small_texfont:
+      in.x += m_charWidth;
+      dc.DrawText(wxT("("),
+                  point.x,
+                  point.y - m_center + SCALE_PX(MC_TEXT_PADDING, scale));      
+      dc.DrawText(wxT(")"),
+                  point.x + m_signWidth + m_innerCell->GetFullWidth(scale),
+                  point.y - m_center + SCALE_PX(MC_TEXT_PADDING, scale));
+      break;
+    case big_texfont:
+      in.x += m_charWidth;
+      dc.DrawText(wxT(PAREN_OPEN),
+                  point.x,
+                  point.y - m_center + SCALE_PX(MC_TEXT_PADDING, scale) -
+                  m_signTop);
+      dc.DrawText(wxT(PAREN_CLOSE),
+                  point.x + m_signWidth + m_innerCell->GetFullWidth(scale),
+                  point.y - m_center + SCALE_PX(MC_TEXT_PADDING, scale) -
+                  m_signTop);
+      break;
+    case assembled_texfont:
+      in.x += m_charWidth;
       {
         int top = point.y - m_center - m_signTop;
         int bottom = top + m_height - m_signSize / 2;
@@ -355,11 +411,11 @@ void ParenCell::Draw(wxPoint point, int fontsize)
                     point.x + m_signWidth + m_innerCell->GetFullWidth(scale),
                     bottom);
         top = top + m_signSize / 2;
-
+        
         wxASSERT_MSG(m_signSize >= 10, _("Font issue: The Parenthesis sign is too small!"));
         if (m_signSize <= 10)
           m_signSize = 10;
-
+        
         if (top <= bottom)
         {
           while (top < bottom)
@@ -374,84 +430,55 @@ void ParenCell::Draw(wxPoint point, int fontsize)
           }
         }
       }
-    }
-    else
-    {
-      // No TeX fonts
-#ifdef __WXMSW__
+      break;
+    case assembled_unicode:
       in.x += m_charWidth;
-      int fontsize1 = (int) ((PAREN_FONT_SIZE * scale + 0.5));
+      break;
+    case assembled_dingbats:
+      in.x += m_charWidth;
       SetForeground();
-      if (m_height < (3*m_charHeight)/2)
-      {
-        fontsize1 = (int) ((fontsize * scale + 0.5));
-        wxFont font(fontsize1, wxFONTFAMILY_MODERN,
-                    wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL,
-                    false,
-                    configuration->GetFontName());
-        if(!font.IsOk())
-          font = *wxNORMAL_FONT;
-        font.SetPointSize(fontsize1);
-        dc.SetFont(font);
-        dc.DrawText(wxT("("),
-                    point.x + m_charWidth - m_charWidth1,
-                    point.y - m_charHeight1 / 2);
-        dc.DrawText(wxT(")"),
-                    point.x + m_width - m_charWidth,
-                    point.y - m_charHeight1 / 2);
-      }
-      else
-      {
-        wxFont font(fontsize1, wxFONTFAMILY_MODERN,
-                    wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL,
-                    false,
-                    configuration->GetSymbolFontName(),
-                    wxFONTENCODING_CP1250);
-        if(!font.IsOk())
-          font = *wxNORMAL_FONT;
-        font.SetPointSize(fontsize1);
-        dc.SetFont(font);
-        dc.DrawText(PAREN_LEFT_TOP,
-                    point.x,
-                    point.y - m_center);
-        dc.DrawText(PAREN_LEFT_BOTTOM,
-                    point.x,
-                    point.y + m_height - m_center - m_charHeight);
-        dc.DrawText(PAREN_RIGHT_TOP,
-                    point.x + m_width - m_charWidth,
-                    point.y - m_center);
-        dc.DrawText(PAREN_RIGHT_BOTTOM,
-                    point.x + m_width - m_charWidth,
-                    point.y + m_height - m_center - m_charHeight);
-        int top, bottom;
-        top = point.y - m_center + m_charHeight/2;
-        bottom = point.y + m_height - m_center - (4*m_charHeight)/3;
+      SetFont(fontsize);
+      dc.DrawText(PAREN_LEFT_TOP,
+                  point.x,
+                  point.y - m_center);
+      dc.DrawText(PAREN_LEFT_BOTTOM,
+                  point.x,
+                  point.y + m_height - m_center - m_charHeight);
+      dc.DrawText(PAREN_RIGHT_TOP,
+                  point.x + m_width - m_charWidth,
+                  point.y - m_center);
+      dc.DrawText(PAREN_RIGHT_BOTTOM,
+                  point.x + m_width - m_charWidth,
+                  point.y + m_height - m_center - m_charHeight);
+      int top, bottom;
+      top = point.y - m_center + m_charHeight/2;
+      bottom = point.y + m_height - m_center - (4*m_charHeight)/3;
 
-        wxASSERT_MSG(m_charHeight>=2,_("Font issue: The char height is too small! Installing http://www.math.union.edu/~dpvc/jsmath/download/jsMath-fonts.html and checking \"Use JSmath fonts\" in the configuration dialogue should be a workaround."));
-        if(m_charHeight <= 2)
-          m_charHeight = 2;
+      wxASSERT_MSG(m_charHeight>=2,_("Font issue: The char height is too small! Installing http://www.math.union.edu/~dpvc/jsmath/download/jsMath-fonts.html and checking \"Use JSmath fonts\" in the configuration dialogue should be a workaround."));
+      if(m_charHeight <= 2)
+        m_charHeight = 2;
 
-        if (top <= bottom)
+      if (top <= bottom)
+      {
+        while (top < bottom)
         {
-          while (top < bottom)
-          {
-            dc.DrawText(PAREN_LEFT_EXTEND,
-      point.x,
-      top);
-            dc.DrawText(PAREN_RIGHT_EXTEND,
-      point.x + m_width - m_charWidth,
-      top);
-            top += (2*m_charHeight)/3;
-          }
           dc.DrawText(PAREN_LEFT_EXTEND,
-          point.x,
-          point.y + m_height - m_center - (3*m_charHeight)/2);
+                      point.x,
+                      top);
           dc.DrawText(PAREN_RIGHT_EXTEND,
-          point.x + m_width - m_charWidth,
-          point.y + m_height - m_center - (3*m_charHeight)/2);
+                      point.x + m_width - m_charWidth,
+                      top);
+          top += (2*m_charHeight)/3;
         }
+        dc.DrawText(PAREN_LEFT_EXTEND,
+                    point.x,
+                    point.y + m_height - m_center - (3*m_charHeight)/2);
+        dc.DrawText(PAREN_RIGHT_EXTEND,
+                    point.x + m_width - m_charWidth,
+                    point.y + m_height - m_center - (3*m_charHeight)/2);
       }
-#else
+      break;
+    case handdrawn:
       in.x = point.x + SCALE_PX(6, scale) + (*m_configuration)->GetDefaultLineWidth();
       SetPen();
       // left
@@ -480,9 +507,10 @@ void ParenCell::Draw(wxPoint point, int fontsize)
                   point.y + m_innerCell->GetMaxDrop() - SCALE_PX(7, scale),
                   point.x + m_width - SCALE_PX(5, scale) - 1 - (*m_configuration)->GetDefaultLineWidth() / 2,
                   point.y + m_innerCell->GetMaxDrop() - SCALE_PX(1, scale));
-      UnsetPen();
-#endif
+      break;
     }
+    
+    UnsetPen();
     m_innerCell->DrawList(in, fontsize);
   }
 }

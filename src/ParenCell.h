@@ -100,6 +100,8 @@ public:
   void SetParent(MathCell *parent);
 
 protected:
+  int m_fontSize;
+  void SetFont(int fontsize);
   MathCell *m_innerCell, *m_open, *m_close;
   MathCell *m_last1;
   bool m_print;
@@ -108,10 +110,13 @@ protected:
   int m_parenFontSize, m_signTop, m_signSize, m_signWidth;
   enum parenthesisStyle
   {
-    PARENTHESIS_NORMAL = 0,   //!< An ordinary parenthesis sign
-    PARENTHESIS_BIG = 1,  //!< A "big parenthesis" sign
-    PARENTHESIS_ASSEMBLED = 2 //!< Assemble a "Parenthesis top half sign", a bot half sign and a
-    //   vertical line.
+    ascii,              //!< An ordinary parenthesis sign created using ascii characters
+    small_texfont,      //!< An ordinary parenthesis sign drawn using a TeX font
+    big_texfont,        //!< A "big parenthesis" sign drawn that can be found in our TeX font
+    assembled_texfont,  //!< A TeX font parenthesis assembled of a top, a bottom and n middle parts
+    assembled_dingbats, //!<  A symbol font parenthesis assembled of a top, a bottom and n middles
+    assembled_unicode,  //!< A "big parenthesis" assembled of unicode characters
+    handdrawn           //!< A  parenthesis sign that was created using draw commands
   };
 
   /* How to create a big parenthesis sign?
