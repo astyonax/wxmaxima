@@ -67,9 +67,9 @@ ParenCell::ParenCell(MathCell *parent, Configuration **config, CellPointers *cel
   m_charHeight1 = 12;
   m_fontSize = 10;
   m_last1 = NULL;
-  m_signSize = 50;
+  m_signHeight = 50;
   m_signWidth = 18;
-  m_signTop = m_signSize / 2;
+  m_signTop = m_signHeight / 2;
   m_parenFontSize = 12;
   m_bigParenType = ascii;
   m_innerCell = NULL;
@@ -229,112 +229,138 @@ void ParenCell::RecalculateWidths(int fontsize)
   if (fontsize < 2) fontsize = 12;
   int fontsize1 = (int) ((fontsize * scale + 0.5));
 
-  
-  // Do we want to use TeX fonts? This is useful on windows if our normal font
-  // lacks the unicode characters we need for drawing big parenthesis and we don't
-  // want to use ugly hand-drawn parenthesis.
-  if (configuration->CheckTeXFonts())
+  // If our font provides all the unicode chars we need we don't need
+  // to bother which exotic method we need to use for drawing nice parenthesis.
+
+  m_bigParenType = assembled_unicode;
+  SetFont(fontsize);
+  dc.GetTextExtent(wxT("\xf0000"), &m_signWidth, &m_extendHeight);
+  dc.GetTextExtent(wxT(PAREN_OPEN_TOP_UNICODE), &m_signWidth, &m_signHeight);
+  std::cerr<<m_extendHeight << " " << m_signHeight<<"\n";
+
+  if((m_extendHeight > 0) && (m_signHeight > 0))
   {
-    /// BUG 2897415: Exporting equations to HTML locks up on Mac
-    ///  there is something wrong with what dc.GetTextExtent returns,
-    ///  make sure there is no infinite loop!
-    // Avoid a possible infinite loop.
     if (size <= 2 * fontsize1)
     {
-      m_bigParenType = small_texfont;
-      SetFont(fontsize);
-      dc.GetTextExtent(wxT("("), &m_signWidth, &m_signSize);
+      m_bigParenType = ascii;
+      dc.GetTextExtent(wxT("("), &m_signWidth, &m_signHeight);
+      std::cerr<<"Ascii\n";
     }
     else
     {
-      if (size <= 4.1 * fontsize1)
+      m_bigParenType = assembled_unicode;
+      std::cerr<<"Assembled\n";
+    } 
+  }
+  {
+    // No font with nice unicode chars.
+    // 
+    // Do we want to use TeX fonts? This is useful on windows if our normal font
+    // lacks the unicode characters we need for drawing big parenthesis and we don't
+    // want to use ugly hand-drawn parenthesis.
+    if (configuration->CheckTeXFonts())
+    {
+      /// BUG 2897415: Exporting equations to HTML locks up on Mac
+      ///  there is something wrong with what dc.GetTextExtent returns,
+      ///  make sure there is no infinite loop!
+      // Avoid a possible infinite loop.
+      if (size <= 2 * fontsize1)
       {
-        m_bigParenType = big_texfont;
+        m_bigParenType = small_texfont;
         SetFont(fontsize);
-        dc.GetTextExtent(wxT(PAREN_OPEN_BIG_TEXFONT), &m_signWidth, &m_signSize);
+        dc.GetTextExtent(wxT("("), &m_signWidth, &m_signHeight);
       }
       else
       {
-        m_bigParenType = assembled_texfont;
-        SetFont(fontsize);
-        dc.GetTextExtent(wxT(PAREN_OPEN_TOP_DINGBATS),
-                         &m_signWidth, &m_signSize);
-      }
-    }
-
-    // Now determine the character sizes we need.
-    if (m_bigParenType == assembled_texfont)
-    {
-      SetFont(fontsize);
-      dc.GetTextExtent(wxT(PAREN_OPEN_BIG_TEXFONT), &m_signWidth, &m_signSize);
-    }
-    else
-    {
-      m_parenFontSize = fontsize;
-      fontsize1 = (int) ((m_parenFontSize * scale + 0.5));
-
-      if (m_signSize < 2)
-        m_signSize = 2;
-
-      if (m_signSize > 0)
-      {
-        // The i avoids an infinite loop.
-        int i = 0;
-        while (m_signSize < TRANSFORM_SIZE(m_bigParenType, size) && i < 40)
+        if (size <= 4.1 * fontsize1)
         {
-          int fontsize1 = (int) ((++m_parenFontSize * scale + 0.5));
-
-          wxString openParentChar;
-          switch(m_bigParenType)
-          {            
-          case big_texfont:
-            openParentChar = PAREN_OPEN_BIG_TEXFONT;
-            break;
-            
-          case assembled_texfont:
-            openParentChar = PAREN_OPEN_TOP_TEXFONT;
-            break;
-
-          default:
-            openParentChar = wxT("(");
-            break;
-          }
+          m_bigParenType = big_texfont;
           SetFont(fontsize);
-          dc.GetTextExtent(openParentChar,&m_signWidth, &m_signSize);
-          i++;
+          dc.GetTextExtent(wxT(PAREN_OPEN_BIG_TEXFONT), &m_signWidth, &m_signHeight);
+        }
+        else
+        {
+          m_bigParenType = assembled_texfont;
+          SetFont(fontsize);
+          dc.GetTextExtent(wxT(PAREN_OPEN_TOP_DINGBATS),
+                           &m_signWidth, &m_signHeight);
         }
       }
-    }
 
-    m_signTop = m_signSize / 5;
-    m_width = m_innerCell->GetFullWidth(scale) + 2 * m_signWidth;
-  }
-  else
-  {
-    // No TeX fonts
-#if defined __WXMSW__
-    if (size <= 2 * fontsize1)
-    {
-      dc.GetTextExtent(PAREN_OPEN_TOP_DINGBATS, &m_charWidth, &m_charHeight);
-      m_bigParenType = ascii;
-      SetFont(fontsize);
-      dc.GetTextExtent(wxt("("), &m_charWidth, &m_charHeight);
+      // Now determine the character sizes we need.
+      if (m_bigParenType == assembled_texfont)
+      {
+        SetFont(fontsize);
+        dc.GetTextExtent(wxT(PAREN_OPEN_BIG_TEXFONT), &m_signWidth, &m_signHeight);
+      }
+      else
+      {
+        m_parenFontSize = fontsize;
+        fontsize1 = (int) ((m_parenFontSize * scale + 0.5));
+
+        if (m_signHeight < 2)
+          m_signHeight = 2;
+
+        if (m_signHeight > 0)
+        {
+          // The i avoids an infinite loop.
+          int i = 0;
+          while (m_signHeight < TRANSFORM_SIZE(m_bigParenType, size) && i < 40)
+          {
+            int fontsize1 = (int) ((++m_parenFontSize * scale + 0.5));
+
+            wxString openParentChar;
+            switch(m_bigParenType)
+            {            
+            case big_texfont:
+              openParentChar = PAREN_OPEN_BIG_TEXFONT;
+              break;
+            
+            case assembled_texfont:
+              openParentChar = PAREN_OPEN_TOP_TEXFONT;
+              break;
+
+            default:
+              openParentChar = wxT("(");
+              break;
+            }
+            SetFont(fontsize);
+            dc.GetTextExtent(openParentChar,&m_signWidth, &m_signHeight);
+            i++;
+          }
+        }
+      }
+
+      m_signTop = m_signHeight / 5;
+      m_width = m_innerCell->GetFullWidth(scale) + 2 * m_signWidth;
     }
     else
     {
-      m_bigParenType = assembled_dingbats;
-      SetFont(fontsize);
-      dc.GetTextExtent(PAREN_OPEN_TOP_DINGBATS, &m_charWidth, &m_charHeight);
-    }
+      // No TeX fonts
+#if defined __WXMSW__
+      if (size <= 2 * fontsize1)
+      {
+        dc.GetTextExtent(PAREN_OPEN_TOP_DINGBATS, &m_charWidth, &m_charHeight);
+        m_bigParenType = ascii;
+        SetFont(fontsize);
+        dc.GetTextExtent(wxt("("), &m_charWidth, &m_charHeight);
+      }
+      else
+      {
+        m_bigParenType = assembled_dingbats;
+        SetFont(fontsize);
+        dc.GetTextExtent(PAREN_OPEN_TOP_DINGBATS, &m_charWidth, &m_charHeight);
+      }
     
-    if(m_charHeight < 2)
-      m_charHeight = 2;
-    m_width = m_innerCell->GetFullWidth(scale) + 2*m_charWidth;
+      if(m_charHeight < 2)
+        m_charHeight = 2;
+      m_width = m_innerCell->GetFullWidth(scale) + 2*m_charWidth;
 #else
-    m_bigParenType = handdrawn;
-    m_width = m_innerCell->GetFullWidth(scale) + SCALE_PX(12, configuration->GetScale())
-              + 2 * (*m_configuration)->GetDefaultLineWidth();
+      m_bigParenType = handdrawn;
+      m_width = m_innerCell->GetFullWidth(scale) + SCALE_PX(12, configuration->GetScale())
+        + 2 * (*m_configuration)->GetDefaultLineWidth();
 #endif
+    }
   }
   m_open->RecalculateWidthsList(fontsize);
   m_close->RecalculateWidthsList(fontsize);
@@ -405,7 +431,7 @@ void ParenCell::Draw(wxPoint point, int fontsize)
       in.x += m_charWidth;
       {
         int top = point.y - m_center - m_signTop;
-        int bottom = top + m_height - m_signSize / 2;
+        int bottom = top + m_height - m_signHeight / 2;
         dc.DrawText(wxT(PAREN_OPEN_TOP_TEXFONT),
                     point.x,
                     top);
@@ -418,11 +444,11 @@ void ParenCell::Draw(wxPoint point, int fontsize)
         dc.DrawText(wxT(PAREN_CLOSE_BOTTOM_TEXFONT),
                     point.x + m_signWidth + m_innerCell->GetFullWidth(scale),
                     bottom);
-        top = top + m_signSize / 2;
+        top = top + m_signHeight / 2;
         
-        wxASSERT_MSG(m_signSize >= 10, _("Font issue: The Parenthesis sign is too small!"));
-        if (m_signSize <= 10)
-          m_signSize = 10;
+        wxASSERT_MSG(m_signHeight >= 10, _("Font issue: The Parenthesis sign is too small!"));
+        if (m_signHeight <= 10)
+          m_signHeight = 10;
         
         if (top <= bottom)
         {
@@ -434,7 +460,7 @@ void ParenCell::Draw(wxPoint point, int fontsize)
             dc.DrawText(wxT(PAREN_CLOSE_EXTEND_TEXFONT),
                         point.x + m_width - m_signWidth,
                         top - 1);
-            top += m_signSize / 10;
+            top += m_signHeight / 10;
           }
         }
       }

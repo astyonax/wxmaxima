@@ -107,7 +107,7 @@ protected:
   bool m_print;
   int m_charWidth, m_charHeight;
   int m_charWidth1, m_charHeight1;
-  int m_parenFontSize, m_signTop, m_signSize, m_signWidth;
+  int m_parenFontSize, m_signTop, m_signHeight, m_signWidth, m_extendHeight;
   enum parenthesisStyle
   {
     ascii,              //!< An ordinary parenthesis sign created using ascii characters
