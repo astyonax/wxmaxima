@@ -214,25 +214,24 @@ void ParenCell::RecalculateWidths(int fontsize)
     m_innerCell = new TextCell(m_group, m_configuration, m_cellPointers);
 
   m_innerCell->RecalculateWidthsList(fontsize);
+  m_innerCell->RecalculateHeightList(fontsize);
 
+  wxDC &dc = configuration->GetDC();
+  int size = m_innerCell->GetMaxHeight();
+  if (size < 2) size = 12;
+  if (fontsize < 2) fontsize = 12;
+  int fontsize1 = (int) ((fontsize * scale + 0.5));
 
+  
   // Do we want to use TeX fonts? This is useful on windows if our normal font
   // lacks the unicode characters we need for drawing big parenthesis and we don't
   // want to use ugly hand-drawn parenthesis.
   if (configuration->CheckTeXFonts())
   {
-    wxDC &dc = configuration->GetDC();
-    m_innerCell->RecalculateHeightList(fontsize);
-    int size = m_innerCell->GetMaxHeight();
     /// BUG 2897415: Exporting equations to HTML locks up on Mac
     ///  there is something wrong with what dc.GetTextExtent returns,
     ///  make sure there is no infinite loop!
     // Avoid a possible infinite loop.
-    if (size < 2) size = 12;
-    if (fontsize < 2) fontsize = 12;
-
-    
-    int fontsize1 = (int) ((fontsize * scale + 0.5));
     if (size <= 2 * fontsize1)
     {
       m_bigParenType = small_texfont;
@@ -307,22 +306,25 @@ void ParenCell::RecalculateWidths(int fontsize)
   {
     // No TeX fonts
 #if defined __WXMSW__
-    wxDC& dc = configuration->GetDC();
-    int fontsize1 = (int) ((PAREN_FONT_SIZE * scale + 0.5));
-    wxFont font(fontsize1, wxFONTFAMILY_MODERN,
-                configuration->IsItalic(TS_DEFAULT),
-                configuration->IsBold(TS_DEFAULT),
-                configuration->IsUnderlined(TS_DEFAULT),
-                configuration->GetSymbolFontName());
-    if(!font.IsOk())
-      font = *wxNORMAL_FONT;
-    font.SetPointSize(fontsize1);
-    dc.SetFont(font);
-    dc.GetTextExtent(PAREN_LEFT_TOP, &m_charWidth, &m_charHeight);
+    if (size <= 2 * fontsize1)
+    {
+      dc.GetTextExtent(PAREN_LEFT_TOP, &m_charWidth, &m_charHeight);
+      m_bigParenType = ascii;
+      SetFont(fontsize);
+      dc.GetTextExtent(wxt("("), &m_charWidth, &m_charHeight);
+    }
+    else
+    {
+      m_bigParenType = assembled_dingbats;
+      SetFont(fontsize);
+      dc.GetTextExtent(PAREN_LEFT_TOP, &m_charWidth, &m_charHeight);
+    }
+    
     if(m_charHeight < 2)
       m_charHeight = 2;
     m_width = m_innerCell->GetFullWidth(scale) + 2*m_charWidth;
 #else
+    m_bigParenType = handdrawn;
     m_width = m_innerCell->GetFullWidth(scale) + SCALE_PX(12, configuration->GetScale())
               + 2 * (*m_configuration)->GetDefaultLineWidth();
 #endif
@@ -336,7 +338,6 @@ void ParenCell::RecalculateHeight(int fontsize)
 {
   Configuration *configuration = (*m_configuration);
   double scale = configuration->GetScale();
-  m_innerCell->RecalculateHeightList(fontsize);
   m_height = m_innerCell->GetMaxHeight() + SCALE_PX(2, scale);
   m_center = m_innerCell->GetMaxCenter() + SCALE_PX(1, scale);
 
