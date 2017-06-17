@@ -39,17 +39,24 @@
 #define PAREN_OPEN_BIG_TEXFONT "\xB0"
 #define PAREN_CLOSE_BIG_TEXFONT "\xD1"
 
-#define PAREN_OPEN_TOP_TEXFONT "\x30"
-#define PAREN_OPEN_EXTEND_TEXFONT "\x42"
-#define PAREN_OPEN_BOTTOM_TEXFONT "\x40"
-#define PAREN_CLOSE_TOP_TEXFONT "\x31"
+#define PAREN_OPEN_TOP_TEXFONT     "\x30"
+#define PAREN_OPEN_EXTEND_TEXFONT  "\x42"
+#define PAREN_OPEN_BOTTOM_TEXFONT  "\x40"
+#define PAREN_CLOSE_TOP_TEXFONT    "\x31"
 #define PAREN_CLOSE_EXTEND_TEXFONT "\x43"
 #define PAREN_CLOSE_BOTTOM_TEXFONT "\x41"
 
-#define TRANSFORM_SIZE(type, size) \
-  (type == 0 ? size:                \
-  type == 1 ? 2*size:              \
-      (3*size)/2)
+#define PAREN_OPEN_TOP_UNICODE     "\x239b"
+#define PAREN_OPEN_EXTEND_UNICODE  "\x239c"
+#define PAREN_OPEN_BOTTOM_UNICODE  "\x239d"
+#define PAREN_CLOSE_TOP_UNICODE    "\x239e"
+#define PAREN_CLOSE_EXTEND_UNICODE "\x239f"
+#define PAREN_CLOSE_BOTTOM_UNICODE "\x23a0"
+
+#define TRANSFORM_SIZE(type, size)            \
+  (type == small_texfont ? size:              \
+  type  == big_texfont ? 2*size:              \
+   (3*size)/2)
 
 ParenCell::ParenCell(MathCell *parent, Configuration **config, CellPointers *cellPointers) : MathCell(parent, config)
 {
