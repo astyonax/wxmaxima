@@ -29,6 +29,7 @@
 #define FRACCELL_H
 
 #include "MathCell.h"
+#include "CellPointers.h"
 
 /* This class represents fractions.
 
@@ -40,9 +41,11 @@
 class FracCell : public MathCell
 {
 public:
-  FracCell(MathCell *parent, Configuration **config);
+  FracCell(MathCell *parent, Configuration **config, CellPointers *cellpointers);
 
   ~FracCell();
+  
+  void MarkAsDeleted();
 
   virtual wxString GetToolTip(const wxPoint &point){
     return GetToolTipList(point, m_num, m_denom);
@@ -127,6 +130,9 @@ protected:
     if there is an actual minus.
   */
   int m_horizontalGapRight;
+
+private:
+  CellPointers *m_cellPointers;
 };
 
 #endif // FRACCELL_H
