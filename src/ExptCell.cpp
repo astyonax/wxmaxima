@@ -77,6 +77,12 @@ ExptCell::~ExptCell()
   wxDELETE(m_open);
   wxDELETE(m_close);
   m_baseCell = m_powCell = m_exp = m_open = m_close = NULL;
+  MarkAsDeleted();
+}
+
+void ExptCell::MarkAsDeleted()
+{
+  MarkAsDeletedList(m_baseCell,m_powCell,m_exp,m_open,m_close);
   if((this == m_cellPointers->m_selectionStart) || (this == m_cellPointers->m_selectionEnd))
     m_cellPointers->m_selectionStart = m_cellPointers->m_selectionEnd = NULL;
   if(this == m_cellPointers->m_cellUnderPointer)

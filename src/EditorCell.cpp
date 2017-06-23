@@ -235,6 +235,11 @@ void EditorCell::MarkAsDeleted()
   }
   if (m_cellPointers->m_activeCell == this)
     m_cellPointers->m_activeCell = NULL;
+
+  if((this == m_cellPointers->m_selectionStart) || (this == m_cellPointers->m_selectionEnd))
+    m_cellPointers->m_selectionStart = m_cellPointers->m_selectionEnd = NULL;
+  if(this == m_cellPointers->m_cellUnderPointer)
+    m_cellPointers->m_cellUnderPointer = NULL;
 }
 
 wxString EditorCell::ToTeX()

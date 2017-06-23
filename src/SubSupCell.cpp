@@ -70,11 +70,18 @@ SubSupCell::~SubSupCell()
   m_indexCell = NULL;
   wxDELETE(m_exptCell);
   m_exptCell = NULL;
+  MarkAsDeleted();
+}
+
+void SubSupCell::MarkAsDeleted()
+{
+  MarkAsDeletedList(m_baseCell, m_indexCell, m_exptCell);
   if((this == m_cellPointers->m_selectionStart) || (this == m_cellPointers->m_selectionEnd))
     m_cellPointers->m_selectionStart = m_cellPointers->m_selectionEnd = NULL;
   if(this == m_cellPointers->m_cellUnderPointer)
     m_cellPointers->m_cellUnderPointer = NULL;
 }
+
 
 void SubSupCell::SetIndex(MathCell *index)
 {

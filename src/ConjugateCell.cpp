@@ -70,6 +70,12 @@ ConjugateCell::~ConjugateCell()
   wxDELETE(m_open);
   wxDELETE(m_close);
   m_innerCell = m_open = m_close = NULL;
+  MarkAsDeleted();
+}
+
+void ConjugateCell::MarkAsDeleted()
+{
+  MarkAsDeletedList(m_innerCell, m_open, m_close);
   if((this == m_cellPointers->m_selectionStart) || (this == m_cellPointers->m_selectionEnd))
     m_cellPointers->m_selectionStart = m_cellPointers->m_selectionEnd = NULL;
   if(this == m_cellPointers->m_cellUnderPointer)

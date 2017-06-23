@@ -38,6 +38,7 @@ CellPointers::CellPointers()
   m_activeCell = NULL;
   m_groupCellUnderPointer = NULL;
   m_lastWorkingGroup = NULL;
+  m_workingGroup = NULL;
   m_selectionString = wxEmptyString;
   m_selectionStart = NULL;
   m_selectionEnd = NULL;

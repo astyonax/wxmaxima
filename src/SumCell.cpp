@@ -79,11 +79,18 @@ SumCell::~SumCell()
   m_base = NULL;
   m_under = NULL;
   m_over = NULL;
+  MarkAsDeleted();
+}
+
+void SumCell::MarkAsDeleted()
+{
+  MarkAsDeletedList(m_base, m_under, m_over);
   if((this == m_cellPointers->m_selectionStart) || (this == m_cellPointers->m_selectionEnd))
     m_cellPointers->m_selectionStart = m_cellPointers->m_selectionEnd = NULL;
   if(this == m_cellPointers->m_cellUnderPointer)
     m_cellPointers->m_cellUnderPointer = NULL;
 }
+
 
 void SumCell::SetOver(MathCell *over)
 {

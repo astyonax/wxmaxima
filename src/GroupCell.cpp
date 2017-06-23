@@ -339,6 +339,8 @@ void GroupCell::MarkAsDeleted()
     m_cellPointers->m_lastWorkingGroup = NULL;
   if (this == m_cellPointers->m_groupCellUnderPointer)
     m_cellPointers->m_groupCellUnderPointer = NULL;
+  if(m_output)
+    m_output->MarkAsDeletedList(m_output);
 }
 
 wxString GroupCell::TexEscapeOutputCell(wxString Input)

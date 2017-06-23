@@ -59,6 +59,12 @@ FunCell::~FunCell()
   wxDELETE(m_nameCell);
   wxDELETE(m_argCell);
   m_nameCell = m_argCell = NULL;
+  MarkAsDeleted();
+}
+
+void FunCell::MarkAsDeleted()
+{
+  MarkAsDeletedList(m_nameCell,m_argCell);
   if((this == m_cellPointers->m_selectionStart) || (this == m_cellPointers->m_selectionEnd))
     m_cellPointers->m_selectionStart = m_cellPointers->m_selectionEnd = NULL;
   if(this == m_cellPointers->m_cellUnderPointer)

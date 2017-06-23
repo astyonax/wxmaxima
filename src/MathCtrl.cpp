@@ -492,9 +492,7 @@ GroupCell *MathCtrl::GetWorkingGroup(bool resortToLast)
 {
   GroupCell *tmp = NULL;
   if(m_cellPointers->GetWorkingGroup(resortToLast) != NULL)
-  {
     tmp = dynamic_cast<GroupCell *>(m_cellPointers->GetWorkingGroup(resortToLast));
-  }
   if(!resortToLast)
     return tmp;
 

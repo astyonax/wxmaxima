@@ -66,11 +66,18 @@ LimitCell::~LimitCell()
   wxDELETE(m_under);
   wxDELETE(m_name);
   m_base = m_under = m_name = NULL;
+  MarkAsDeleted();
+}
+
+void LimitCell::MarkAsDeleted()
+{
+  MarkAsDeletedList(m_base, m_under, m_name);
   if((this == m_cellPointers->m_selectionStart) || (this == m_cellPointers->m_selectionEnd))
     m_cellPointers->m_selectionStart = m_cellPointers->m_selectionEnd = NULL;
   if(this == m_cellPointers->m_cellUnderPointer)
     m_cellPointers->m_cellUnderPointer = NULL;
 }
+
 
 void LimitCell::SetName(MathCell *name)
 {

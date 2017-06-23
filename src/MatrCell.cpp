@@ -84,6 +84,14 @@ MatrCell::~MatrCell()
     wxDELETE(m_cells[i]);
     m_cells[i] = NULL;
   }
+  MarkAsDeleted();
+}
+
+void MatrCell::MarkAsDeleted()
+{
+  for (unsigned int i = 0; i < m_cells.size(); i++)
+    if(m_cells[i])
+      m_cells[i]->MarkAsDeletedList(m_cells[i]);
   if((this == m_cellPointers->m_selectionStart) || (this == m_cellPointers->m_selectionEnd))
     m_cellPointers->m_selectionStart = m_cellPointers->m_selectionEnd = NULL;
   if(this == m_cellPointers->m_cellUnderPointer)

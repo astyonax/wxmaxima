@@ -60,6 +60,12 @@ DiffCell::~DiffCell()
   wxDELETE(m_baseCell);
   wxDELETE(m_diffCell);
   m_baseCell = m_diffCell = NULL;
+  MarkAsDeleted();
+}
+
+void DiffCell::MarkAsDeleted()
+{
+  MarkAsDeletedList(m_baseCell, m_diffCell);
   if((this == m_cellPointers->m_selectionStart) || (this == m_cellPointers->m_selectionEnd))
     m_cellPointers->m_selectionStart = m_cellPointers->m_selectionEnd = NULL;
   if(this == m_cellPointers->m_cellUnderPointer)

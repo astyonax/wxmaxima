@@ -45,7 +45,7 @@ public:
   SumCell(MathCell *parent, Configuration **config, CellPointers *cellPointers);
 
   ~SumCell();
-
+  
   void MarkAsDeleted();
 
   MathCell *Copy();

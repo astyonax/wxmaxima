@@ -48,7 +48,7 @@ public:
   void MarkAsDeleted();
 
   virtual wxString GetToolTip(const wxPoint &point){
-    return GetToolTipList(point, m_num, m_denom);
+    return GetToolTipList(point,m_open1,m_open2,m_close1,m_close2,m_num,m_denom,m_divide);
   }
 
   //! All types of fractions we supportx
