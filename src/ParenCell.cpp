@@ -338,7 +338,7 @@ void ParenCell::Draw(wxPoint point, int fontsize)
       
       in.x += m_signWidth;
       // Center the contents of the parenthesis vertically.
-      in.y += (m_innerCell->GetCenter() - m_innerCell->GetMaxHeight() /2) - SCALE_PX(1,scale);
+      in.y += (m_innerCell->GetCenter() - m_innerCell->GetMaxHeight() /2);
     }
     break;
     case handdrawn:
