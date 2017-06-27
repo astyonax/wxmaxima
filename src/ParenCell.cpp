@@ -371,6 +371,7 @@ void ParenCell::RecalculateHeight(int fontsize)
 {
   Configuration *configuration = (*m_configuration);
   double scale = configuration->GetScale();
+  m_innerCell->RecalculateHeightList(fontsize);
   m_height = m_innerCell->GetMaxHeight() + SCALE_PX(2, scale);
   m_center = m_innerCell->GetMaxCenter() + SCALE_PX(1, scale);
 
