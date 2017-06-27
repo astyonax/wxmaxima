@@ -195,17 +195,17 @@ void ParenCell::RecalculateWidths(int fontsize)
   
   wxDC &dc = configuration->GetDC();
   int size = m_innerCell->GetMaxHeight();
-  if (size < 2) size = 12;
-  if (fontsize < 2) fontsize = 12;
+  if (fontsize < 4) fontsize = 4;
   int fontsize1 = (int) ((fontsize * scale + 0.5));
   // If our font provides all the unicode chars we need we don't need
   // to bother which exotic method we need to use for drawing nice parenthesis.
-  if (fontsize1*2/3 > size)
+  if (fontsize1*3 > size)
   {
     m_bigParenType = ascii;
     m_open->RecalculateWidthsList(fontsize);
     m_close->RecalculateWidthsList(fontsize);
-    dc.GetTextExtent(wxT("("), &m_signWidth, &m_signHeight);
+    m_signWidth = m_open->GetWidth();
+    m_signHeight= m_open->GetHeight();
   }
   else
   {
@@ -249,11 +249,11 @@ void ParenCell::RecalculateWidths(int fontsize)
         m_signWidth = signWidth2;
       if(m_signWidth < signWidth3)
         m_signWidth = signWidth3;
-      m_numberOfExtensions = ((size - m_signTopHeight - m_signBotHeight + m_extendHeight - 1) / m_extendHeight);
+      m_numberOfExtensions = ((size - m_signTopHeight - m_signBotHeight + m_extendHeight/ 2 - 1) / m_extendHeight);
       if(m_numberOfExtensions < 0)
         m_numberOfExtensions = 0;
       m_signHeight = m_signTopHeight + m_signBotHeight + m_extendHeight * m_numberOfExtensions;
-      m_height = m_signHeight + SCALE_PX(2, scale);
+      m_height = MAX(m_signHeight,m_innerCell->GetMaxHeight()) + SCALE_PX(2, scale);
       m_center = m_signHeight / 2;
     }
     else
@@ -268,7 +268,7 @@ void ParenCell::RecalculateHeight(int fontsize)
   Configuration *configuration = (*m_configuration);
   double scale = configuration->GetScale();
   m_innerCell->RecalculateHeightList(fontsize);
-  m_height = m_signHeight + SCALE_PX(2, scale);
+  m_height = MAX(m_signHeight,m_innerCell->GetMaxHeight()) + SCALE_PX(2, scale);
   m_center = m_height / 2;
 
   SetFont(fontsize);
@@ -304,19 +304,15 @@ void ParenCell::Draw(wxPoint point, int fontsize)
     switch(m_bigParenType)
     {            
     case ascii:
-      dc.DrawText(wxT("("),
-                  point.x,
-                  point.y - m_center + SCALE_PX(MC_TEXT_PADDING, scale));     
-      dc.DrawText(wxT(")"),
-                  point.x + m_signWidth + m_innerCell->GetFullWidth(scale),
-                  point.y - m_center + SCALE_PX(MC_TEXT_PADDING, scale));
+      m_open->DrawList(point, fontsize);
+      m_close->DrawList(wxPoint(point.x + m_signWidth + m_innerCell->GetFullWidth(scale),point.y), fontsize);
       in.x += m_open->GetWidth();
       break;
     case assembled_unicode:
     case assembled_unicode_fallbackfont:
     {
-      int top = point.y - m_center + SCALE_PX (2,scale);
-      int bottom = top + m_height - m_signBotHeight - SCALE_PX (4,scale);
+      int top = point.y - m_center + SCALE_PX (1,scale);
+      int bottom = top + m_signHeight - m_signBotHeight - SCALE_PX (2,scale);
       dc.DrawText(wxT(PAREN_OPEN_TOP_UNICODE),
                     point.x,
                   top);
@@ -341,6 +337,8 @@ void ParenCell::Draw(wxPoint point, int fontsize)
       }
       
       in.x += m_signWidth;
+      // Center the contents of the parenthesis vertically.
+      in.y += (m_innerCell->GetCenter() - m_innerCell->GetMaxHeight() /2) - SCALE_PX(1,scale);
     }
     break;
     case handdrawn:
