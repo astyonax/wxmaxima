@@ -105,17 +105,15 @@ protected:
   MathCell *m_innerCell, *m_open, *m_close;
   MathCell *m_last1;
   bool m_print;
+  int m_numberOfExtensions;
   int m_charWidth, m_charHeight;
   int m_charWidth1, m_charHeight1;
-  int m_parenFontSize, m_signTop, m_signHeight, m_signWidth, m_extendHeight;
+  int m_parenFontSize, m_signWidth, m_signHeight, m_signTopHeight, m_signBotHeight, m_extendHeight;
   enum parenthesisStyle
   {
     ascii,              //!< An ordinary parenthesis sign created using ascii characters
-    small_texfont,      //!< An ordinary parenthesis sign drawn using a TeX font
-    big_texfont,        //!< A "big parenthesis" sign drawn that can be found in our TeX font
-    assembled_texfont,  //!< A TeX font parenthesis assembled of a top, a bottom and n middle parts
-    assembled_dingbats, //!<  A symbol font parenthesis assembled of a top, a bottom and n middles
     assembled_unicode,  //!< A "big parenthesis" assembled of unicode characters
+    assembled_unicode_fallbackfont,  //!< A "big parenthesis" assembled of unicode characters of the fallback font
     handdrawn           //!< A  parenthesis sign that was created using draw commands
   };
 
