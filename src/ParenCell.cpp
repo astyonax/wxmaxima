@@ -143,7 +143,11 @@ void ParenCell::SetFont(int fontsize)
   case assembled_unicode:
     fontName = configuration->GetFontName(TS_DEFAULT);
     break;
-    
+
+  case assembled_unicode_fallbackfont:
+    fontName = wxT("Linux Libertine O");
+    break;
+
   default:
     fontName = configuration->GetFontName(TS_DEFAULT);
   }
@@ -154,7 +158,10 @@ void ParenCell::SetFont(int fontsize)
   wxFont font;
   font.SetFamily(wxFONTFAMILY_MODERN);
   font.SetFaceName(fontName);
-  font.SetEncoding(fontEncoding);
+  if(m_bigParenType == assembled_unicode_fallbackfont)
+    font.SetEncoding(wxFONTENCODING_UTF8);
+  else
+    font.SetEncoding(fontEncoding);
   font.SetStyle(fontStyle);
   font.SetWeight(fontWeight);
   font.SetUnderlined(underlined);
