@@ -145,6 +145,10 @@ void ParenCell::SetFont(int fontsize)
     break;
 
   case assembled_unicode_fallbackfont:
+    fontName = wxT("Linux Libertine");
+    break;
+
+  case assembled_unicode_fallbackfont2:
     fontName = wxT("Linux Libertine O");
     break;
 
@@ -158,7 +162,7 @@ void ParenCell::SetFont(int fontsize)
   wxFont font;
   font.SetFamily(wxFONTFAMILY_MODERN);
   font.SetFaceName(fontName);
-  if(m_bigParenType == assembled_unicode_fallbackfont)
+  if((m_bigParenType == assembled_unicode_fallbackfont) || (m_bigParenType == assembled_unicode_fallbackfont2))
     font.SetEncoding(wxFONTENCODING_UTF8);
   else
     font.SetEncoding(fontEncoding);
@@ -246,7 +250,23 @@ void ParenCell::RecalculateWidths(int fontsize)
         (m_extendHeight < 1) ||
         (m_signBotHeight < 1)
         )
-        m_bigParenType = handdrawn;
+      {
+        m_bigParenType = assembled_unicode_fallbackfont2;
+        SetFont(fontsize);
+        dc.GetTextExtent(wxT(PAREN_OPEN_TOP_UNICODE),    &signWidth1, &m_signTopHeight);
+        dc.GetTextExtent(wxT(PAREN_OPEN_EXTEND_UNICODE), &signWidth2, &m_extendHeight);
+        dc.GetTextExtent(wxT(PAREN_OPEN_BOTTOM_UNICODE),    &signWidth3, &m_signBotHeight);
+        
+        if(
+          (signWidth1 < 1 ) ||
+          (signWidth2 < 1 ) ||
+          (signWidth3 < 1 ) ||
+          (m_signTopHeight < 1) ||
+          (m_extendHeight < 1) ||
+          (m_signBotHeight < 1)
+          )
+          m_bigParenType = handdrawn;
+      }
     }
     
     if(m_bigParenType != handdrawn)

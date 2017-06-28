@@ -113,7 +113,8 @@ protected:
   {
     ascii,              //!< An ordinary parenthesis sign created using ascii characters
     assembled_unicode,  //!< A "big parenthesis" assembled of unicode characters
-    assembled_unicode_fallbackfont,  //!< A "big parenthesis" assembled of unicode characters of the fallback font
+    assembled_unicode_fallbackfont,  //!< A "big parenthesis" assembled of unicode characters of the fallback font, Freetype version
+    assembled_unicode_fallbackfont2,  //!< A "big parenthesis" assembled of unicode characters of the fallback font, Opentype version
     handdrawn           //!< A  parenthesis sign that was created using draw commands
   };
 
