@@ -162,7 +162,8 @@ void ParenCell::SetFont(int fontsize)
   wxFont font;
   font.SetFamily(wxFONTFAMILY_MODERN);
   font.SetFaceName(fontName);
-  if((m_bigParenType == assembled_unicode_fallbackfont) || (m_bigParenType == assembled_unicode_fallbackfont2))
+  if((m_bigParenType == assembled_unicode_fallbackfont) ||
+     (m_bigParenType == assembled_unicode_fallbackfont2))
     font.SetEncoding(wxFONTENCODING_UTF8);
   else
     font.SetEncoding(fontEncoding);
