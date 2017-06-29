@@ -170,7 +170,6 @@ void ParenCell::SetFont(int fontsize)
   font.SetStyle(fontStyle);
   font.SetWeight(fontWeight);
   font.SetUnderlined(underlined);
-  font.SetEncoding(fontEncoding);
   if (!font.IsOk())
   {
     font.SetFamily(wxFONTFAMILY_MODERN);
