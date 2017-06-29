@@ -223,10 +223,13 @@ void ParenCell::RecalculateWidths(int fontsize)
   {
     m_bigParenType = assembled_unicode;
     SetFont(fontsize);
-    int signWidth1,signWidth2,signWidth3;
-    dc.GetTextExtent(wxT(PAREN_OPEN_TOP_UNICODE),    &signWidth1, &m_signTopHeight);
-    dc.GetTextExtent(wxT(PAREN_OPEN_EXTEND_UNICODE), &signWidth2, &m_extendHeight);
-    dc.GetTextExtent(wxT(PAREN_OPEN_BOTTOM_UNICODE), &signWidth3, &m_signBotHeight);
+    int signWidth1,signWidth2,signWidth3,descent,leading;
+    dc.GetTextExtent(wxT(PAREN_OPEN_TOP_UNICODE),    &signWidth1, &m_signTopHeight, &descent, &leading);
+    m_signTopHeight -= descent + 1;
+    dc.GetTextExtent(wxT(PAREN_OPEN_EXTEND_UNICODE), &signWidth2, &m_extendHeight, &descent, &leading);
+    m_extendHeight -= descent + 1;
+    dc.GetTextExtent(wxT(PAREN_OPEN_BOTTOM_UNICODE), &signWidth3, &m_signBotHeight, &descent, &leading);
+    m_signBotHeight -= descent + 1;
     
     if(
       (signWidth1 < 1 ) ||
@@ -239,9 +242,9 @@ void ParenCell::RecalculateWidths(int fontsize)
     {
       m_bigParenType = assembled_unicode_fallbackfont;
       SetFont(fontsize);
-      dc.GetTextExtent(wxT(PAREN_OPEN_TOP_UNICODE),    &signWidth1, &m_signTopHeight);
-      dc.GetTextExtent(wxT(PAREN_OPEN_EXTEND_UNICODE), &signWidth2, &m_extendHeight);
-      dc.GetTextExtent(wxT(PAREN_OPEN_BOTTOM_UNICODE),    &signWidth3, &m_signBotHeight);
+      dc.GetTextExtent(wxT(PAREN_OPEN_TOP_UNICODE),    &signWidth1, &m_signTopHeight, &descent);
+      dc.GetTextExtent(wxT(PAREN_OPEN_EXTEND_UNICODE), &signWidth2, &m_extendHeight, &descent);
+      dc.GetTextExtent(wxT(PAREN_OPEN_BOTTOM_UNICODE),    &signWidth3, &m_signBotHeight, &descent);
       
       if(
         (signWidth1 < 1 ) ||
@@ -254,9 +257,9 @@ void ParenCell::RecalculateWidths(int fontsize)
       {
         m_bigParenType = assembled_unicode_fallbackfont2;
         SetFont(fontsize);
-        dc.GetTextExtent(wxT(PAREN_OPEN_TOP_UNICODE),    &signWidth1, &m_signTopHeight);
-        dc.GetTextExtent(wxT(PAREN_OPEN_EXTEND_UNICODE), &signWidth2, &m_extendHeight);
-        dc.GetTextExtent(wxT(PAREN_OPEN_BOTTOM_UNICODE),    &signWidth3, &m_signBotHeight);
+        dc.GetTextExtent(wxT(PAREN_OPEN_TOP_UNICODE),    &signWidth1, &m_signTopHeight, &descent);
+        dc.GetTextExtent(wxT(PAREN_OPEN_EXTEND_UNICODE), &signWidth2, &m_extendHeight, &descent);
+        dc.GetTextExtent(wxT(PAREN_OPEN_BOTTOM_UNICODE),    &signWidth3, &m_signBotHeight, &descent);
         
         if(
           (signWidth1 < 1 ) ||
