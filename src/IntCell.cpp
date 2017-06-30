@@ -145,6 +145,7 @@ void IntCell::RecalculateWidths(int fontsize)
   m_signTopHeight -= descent + 1;
   dc.GetTextExtent(INTEGRAL_EXTEND, &signWidth2, &m_extendHeight, &descent, &leading);
   m_extendHeight -= descent + 1;
+  std::cerr<<m_extendHeight<<"\n";
   dc.GetTextExtent(INTEGRAL_BOTTOM, &signWidth3, &m_signBotHeight, &descent, &leading);
   m_signBotHeight -= descent + 1;
   
@@ -523,7 +524,7 @@ void IntCell::SetFont(int fontsize)
     // In this case we don't need to set a font
     return;
   case currentFont:
-    fontName = configuration->GetFontName(TS_DEFAULT);
+    fontName = configuration->GetFontName(TS_FUNCTION);
     break;
   case fallbackFont:
     fontName = wxT("Linux Libertine");
@@ -533,10 +534,10 @@ void IntCell::SetFont(int fontsize)
     break;
   }
   fontEncoding = configuration->GetFontEncoding();
-  fontName = configuration->GetFontName(TS_DEFAULT);
-  fontStyle = configuration->IsItalic(TS_DEFAULT);
-  fontWeight = configuration->IsBold(TS_DEFAULT);
-  fontName = configuration->GetFontName(TS_DEFAULT);
+  std::cerr<<fontName<<"\n";
+  fontStyle = configuration->IsItalic(TS_FUNCTION);
+  fontWeight = configuration->IsBold(TS_FUNCTION);
+  fontName = configuration->GetFontName(TS_FUNCTION);
   font.SetFaceName(fontName);
   font.SetEncoding(fontEncoding);
   font.SetStyle(fontStyle);
