@@ -28,12 +28,9 @@
 #include "IntCell.h"
 #include "TextCell.h"
 
-#if defined __WXMSW__
-#define INTEGRAL_TOP "\xF3"
-#define INTEGRAL_BOTTOM "\xF5"
-#define INTEGRAL_EXTEND "\xF4"
-#define INTEGRAL_FONT_SIZE 12
-#endif
+#define INTEGRAL_TOP wxT("\x2320")
+#define INTEGRAL_BOTTOM wxT("\x2321")
+#define INTEGRAL_EXTEND wxT("\x23AE")
 
 IntCell::IntCell(MathCell *parent, Configuration **config, CellPointers *cellPointers) : MathCell(parent, config)
 {
@@ -41,9 +38,14 @@ IntCell::IntCell(MathCell *parent, Configuration **config, CellPointers *cellPoi
   m_under = NULL;
   m_over = NULL;
   m_var = NULL;
-  m_signSize = 50;
+  m_useUnicode = no;
+  m_signHeight = 50;
+  m_extendHeight = 0;
+  m_signTopHeight = 0;
+  m_signBotHeight = 0;
+  m_extendNum = 1;
   m_signWidth = 18;
-  m_signTop = m_signSize / 2;
+  m_signTop = m_signHeight / 2;
   m_intStyle = INT_IDEF;
   m_charWidth = 12;
   m_charHeight = 12;
@@ -79,9 +81,13 @@ MathCell *IntCell::Copy()
 IntCell::~IntCell()
 {
   wxDELETE(m_base);
+  m_base = NULL;
   wxDELETE(m_under);
+  m_under = NULL;
   wxDELETE(m_over);
+  m_over = NULL;
   wxDELETE(m_var);
+  m_var = NULL;
   MarkAsDeleted();
 }
 
@@ -129,11 +135,84 @@ void IntCell::SetVar(MathCell *var)
 void IntCell::RecalculateWidths(int fontsize)
 {
   Configuration *configuration = (*m_configuration);
+  wxDC &dc = configuration->GetDC();
   double scale = configuration->GetScale();
+  
+  int signWidth1,signWidth2,signWidth3,descent,leading;
+  m_useUnicode = currentFont;
+  SetFont(fontsize);
+  dc.GetTextExtent(INTEGRAL_TOP,    &signWidth1, &m_signTopHeight, &descent, &leading);
+  m_signTopHeight -= descent + 1;
+  dc.GetTextExtent(INTEGRAL_EXTEND, &signWidth2, &m_extendHeight, &descent, &leading);
+  m_extendHeight -= descent + 1;
+  dc.GetTextExtent(INTEGRAL_BOTTOM, &signWidth3, &m_signBotHeight, &descent, &leading);
+  m_signBotHeight -= descent + 1;
+  
+  if(
+    (signWidth1 < 1 ) ||
+    (signWidth2 < 1 ) ||
+    (signWidth3 < 1 ) ||
+    (m_signTopHeight < 1) ||
+    (m_extendHeight < 1) ||
+    (m_signBotHeight < 1)
+    )
+  {
+    m_useUnicode = fallbackFont;
+    SetFont(fontsize);
+    dc.GetTextExtent(INTEGRAL_TOP,    &signWidth1, &m_signTopHeight, &descent, &leading);
+    m_signTopHeight -= descent + 1;
+    dc.GetTextExtent(INTEGRAL_EXTEND, &signWidth2, &m_extendHeight, &descent, &leading);
+    m_extendHeight -= descent + 1;
+    dc.GetTextExtent(INTEGRAL_BOTTOM, &signWidth3, &m_signBotHeight, &descent, &leading);
+    m_signBotHeight -= descent + 1;
+  
+    if(
+      (signWidth1 < 1 ) ||
+      (signWidth2 < 1 ) ||
+      (signWidth3 < 1 ) ||
+      (m_signTopHeight < 1) ||
+      (m_extendHeight < 1) ||
+      (m_signBotHeight < 1)
+      )
+    {
+      m_useUnicode = fallbackFont2;
+      SetFont(fontsize);
+      dc.GetTextExtent(INTEGRAL_TOP,    &signWidth1, &m_signTopHeight, &descent, &leading);
+      m_signTopHeight -= descent + 1;
+      dc.GetTextExtent(INTEGRAL_EXTEND, &signWidth2, &m_extendHeight, &descent, &leading);
+      m_extendHeight -= descent + 1;
+      dc.GetTextExtent(INTEGRAL_BOTTOM, &signWidth3, &m_signBotHeight, &descent, &leading);
+      m_signBotHeight -= descent + 1;
+  
+      if(
+        (signWidth1 < 1 ) ||
+        (signWidth2 < 1 ) ||
+        (signWidth3 < 1 ) ||
+        (m_signTopHeight < 1) ||
+        (m_extendHeight < 1) ||
+        (m_signBotHeight < 1)
+        )
+      {
+        m_useUnicode = no;
+      }
+    }
+  }
 
-  m_signSize = SCALE_PX(50, scale);
-  m_signWidth = SCALE_PX(18, scale);
-
+  if(m_useUnicode == no)
+  {
+    m_signHeight = SCALE_PX(50, scale);
+    m_signWidth = SCALE_PX(18, scale);
+  }
+  else
+  {
+    m_signHeight = m_signTopHeight + m_extendHeight + m_signBotHeight;
+    m_signWidth = signWidth1;
+    if(m_signWidth < signWidth2)
+      m_signWidth = signWidth2;
+    if(m_signWidth < signWidth3)
+      m_signWidth = signWidth3;  
+  }
+  
   m_base->RecalculateWidthsList(fontsize);
   m_var->RecalculateWidthsList(fontsize);
   if (m_under == NULL)
@@ -142,60 +221,12 @@ void IntCell::RecalculateWidths(int fontsize)
   if (m_over == NULL)
     m_over = new TextCell(m_group, m_configuration, m_cellPointers);
   m_over->RecalculateWidthsList(MAX(MC_MIN_SIZE, fontsize - 5));
-
-  if (configuration->CheckTeXFonts())
-  {
-    wxDC &dc = configuration->GetDC();
-    int fontsize1 = (int) ((fontsize * scale * 1.5 + 0.5));
-    wxFont font(fontsize1, wxFONTFAMILY_MODERN,
-                wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false,
-                configuration->GetTeXCMEX());
-    if (!font.IsOk())
-      font = *wxNORMAL_FONT;
-    font.SetPointSize(fontsize1);
-    dc.SetFont(font);
-    dc.GetTextExtent(wxT("\x5A"), &m_signWidth, &m_signSize);
-
-#if defined __WXMSW__
-    m_signWidth = m_signWidth / 2;
-#endif
-    m_signTop = m_signSize / 2;
-    m_signSize = (85 * m_signSize) / 100;
-
-    m_width = m_signWidth +
-              MAX(m_over->GetFullWidth(scale) + m_signWidth, m_under->GetFullWidth(scale)) +
-              m_base->GetFullWidth(scale) +
-              m_var->GetFullWidth(scale) +
-              SCALE_PX(4, scale);
-  }
-  else
-  {
-#if defined __WXMSW__
-    wxDC& dc = configuration->GetDC();
-    int fontsize1 = (int) ((INTEGRAL_FONT_SIZE * scale + 0.5));
-    wxFont font(fontsize1, wxFONTFAMILY_MODERN,
-                wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL,
-                false,
-                configuration->GetSymbolFontName());
-    if(!font.IsOk())
-      font = *wxNORMAL_FONT;
-    font.SetPointSize(fontsize1);
-    dc.SetFont(font);
-    dc.GetTextExtent(INTEGRAL_TOP, &m_charWidth, &m_charHeight);
-
-    m_width = m_signWidth +
-              m_base->GetFullWidth(scale) +
-              MAX(m_over->GetFullWidth(scale), m_under->GetFullWidth(scale)) +
-              m_var->GetFullWidth(scale) +
-              SCALE_PX(4, scale);
-#else
-    m_width = m_signWidth +
-              m_base->GetFullWidth(scale) +
-              MAX(m_over->GetFullWidth(scale), m_under->GetFullWidth(scale)) +
-              m_var->GetFullWidth(scale) +
-              SCALE_PX(4, scale);
-#endif
-  }
+  
+  m_width = m_signWidth +
+    MAX(m_over->GetFullWidth(scale) + m_signWidth, m_under->GetFullWidth(scale)) +
+    m_base->GetFullWidth(scale) +
+    m_var->GetFullWidth(scale) +
+    SCALE_PX(4, scale);
   ResetData();
 }
 
@@ -211,28 +242,17 @@ void IntCell::RecalculateHeight(int fontsize)
 
   if (m_intStyle == INT_DEF)
   {
-    if (configuration->CheckTeXFonts())
-    {
-      m_center = MAX(m_over->GetMaxHeight() + SCALE_PX(4, scale) + m_signSize / 2 - m_signSize / 3,
+      m_center = MAX(m_over->GetMaxHeight() + SCALE_PX(4, scale) + m_signHeight / 2 - m_signHeight / 3,
                      m_base->GetMaxCenter());
       m_height = m_center +
-                 MAX(m_under->GetMaxHeight() + SCALE_PX(4, scale) + m_signSize / 2 - m_signSize / 3,
+                 MAX(m_under->GetMaxHeight() + SCALE_PX(4, scale) + m_signHeight / 2 - m_signHeight / 3,
                      m_base->GetMaxDrop());
-    }
-    else
-    {
-      m_center = MAX(m_over->GetMaxHeight() + SCALE_PX(4, scale) + m_signSize / 2 - m_signSize / 3,
-                     m_base->GetMaxCenter());
-      m_height = m_center +
-                 MAX(m_under->GetMaxHeight() + SCALE_PX(4, scale) + m_signSize / 2 - m_signSize / 3,
-                     m_base->GetMaxDrop());
-    }
   }
   else
   {
-    m_center = MAX(m_signSize / 2, m_base->GetMaxCenter());
+    m_center = MAX(m_signHeight / 2, m_base->GetMaxCenter());
     m_height = m_center +
-               MAX(m_signSize / 2, m_base->GetMaxDrop());
+      MAX(m_signHeight / 2, m_base->GetMaxDrop());
   }
 }
 
@@ -245,134 +265,84 @@ void IntCell::Draw(wxPoint point, int fontsize)
   {
     wxDC &dc = configuration->GetDC();
     double scale = configuration->GetScale();
-
-    wxPoint base(point), under(point), over(point), var(point), sign(point);
-
-    if (configuration->CheckTeXFonts())
+    
+    wxPoint base, under, over, var;
+    if(m_useUnicode == no)
     {
-      SetForeground();
-      int fontsize1 = (int) ((fontsize * scale * 1.5 + 0.5));
-      wxFont font(fontsize1, wxFONTFAMILY_MODERN,
-                  wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false,
-                  configuration->GetTeXCMEX());
-      if (!font.IsOk())
-        font = *wxNORMAL_FONT;
-      font.SetPointSize(fontsize1);
-      dc.SetFont(font);
-      dc.DrawText(wxT("\x5A"),
-                  sign.x,
-                  sign.y - m_signTop);
-    }
-    else
-    {
-#if defined __WXMSW__
-      SetForeground();
-      int fontsize1 = (int) ((INTEGRAL_FONT_SIZE * scale + 0.5));
-      int m_signWCenter = m_signWidth / 2;
-
-      dc.SetFont(wxFont(fontsize1, wxFONTFAMILY_MODERN,
-      wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL,
-      false,
-                        configuration->GetSymbolFontName()));
-      dc.DrawText(INTEGRAL_TOP,
-                  sign.x + m_signWCenter - m_charWidth / 2,
-                  sign.y - (m_signSize + 1) / 2);
-      dc.DrawText(INTEGRAL_BOTTOM,
-                  sign.x + m_signWCenter - m_charWidth / 2,
-                  sign.y + (m_signSize + 1) / 2 - m_charHeight);
-
-      int top, bottom;
-      top = sign.y - (m_signSize + 1) / 2 + m_charHeight / 2;
-      bottom = sign.y + (m_signSize + 1) / 2 - (3 * m_charHeight) / 2;
-      if (top <= bottom)
-      {
-        wxASSERT_MSG(m_charHeight>=2,_("Font issue: The char height is too small! Installing http://www.math.union.edu/~dpvc/jsmath/download/jsMath-fonts.html and checking \"Use JSmath fonts\" in the configuration dialogue should be a workaround."));
-        if(m_charHeight <= 2)
-          m_charHeight = 2;
-
-        while (top < bottom)
-        {
-          dc.DrawText(INTEGRAL_EXTEND,
-          point.x + m_signWCenter - m_charWidth / 2,
-          top);
-          top += (2*m_charHeight)/3;
-        }
-        dc.DrawText(INTEGRAL_EXTEND,
-        point.x + m_signWCenter - m_charWidth / 2,
-        sign.y + (m_signSize + 1) / 2 - (3 * m_charHeight) / 2);
-      }
-#else
       SetPen();
       // top decoration
       int m_signWCenter = m_signWidth / 2;
-      dc.DrawLine(sign.x + m_signWCenter,
-                  sign.y - (m_signSize + 1) / 2 + SCALE_PX(12, scale) - 1,
-                  sign.x + m_signWCenter + SCALE_PX(3, scale),
-                  sign.y - (m_signSize + 1) / 2 + SCALE_PX(3, scale));
-      dc.DrawLine(sign.x + m_signWCenter + SCALE_PX(3, scale),
-                  sign.y - (m_signSize + 1) / 2 + SCALE_PX(3, scale),
-                  sign.x + m_signWCenter + SCALE_PX(6, scale),
-                  sign.y - (m_signSize + 1) / 2);
-      dc.DrawLine(sign.x + m_signWCenter + SCALE_PX(6, scale),
-                  sign.y - (m_signSize + 1) / 2,
-                  sign.x + m_signWCenter + SCALE_PX(9, scale),
-                  sign.y - (m_signSize + 1) / 2 + SCALE_PX(3, scale));
+      dc.DrawLine(point.x + m_signWCenter,
+                  point.y - (m_signHeight + 1) / 2 + SCALE_PX(12, scale) - 1,
+                  point.x + m_signWCenter + SCALE_PX(3, scale),
+                  point.y - (m_signHeight + 1) / 2 + SCALE_PX(3, scale));
+      dc.DrawLine(point.x + m_signWCenter + SCALE_PX(3, scale),
+                  point.y - (m_signHeight + 1) / 2 + SCALE_PX(3, scale),
+                  point.x + m_signWCenter + SCALE_PX(6, scale),
+                  point.y - (m_signHeight + 1) / 2);
+      dc.DrawLine(point.x + m_signWCenter + SCALE_PX(6, scale),
+                  point.y - (m_signHeight + 1) / 2,
+                  point.x + m_signWCenter + SCALE_PX(9, scale),
+                  point.y - (m_signHeight + 1) / 2 + SCALE_PX(3, scale));
       // bottom decoration
-      dc.DrawLine(sign.x + m_signWCenter,
-                  sign.y + (m_signSize + 1) / 2 - SCALE_PX(12, scale) + 1,
-                  sign.x + m_signWCenter - SCALE_PX(3, scale),
-                  sign.y + (m_signSize + 1) / 2 - SCALE_PX(3, scale));
-      dc.DrawLine(sign.x + m_signWCenter - SCALE_PX(3, scale),
-                  sign.y + (m_signSize + 1) / 2 - SCALE_PX(3, scale),
-                  sign.x + m_signWCenter - SCALE_PX(6, scale),
-                  sign.y + (m_signSize + 1) / 2);
-      dc.DrawLine(sign.x + m_signWCenter - SCALE_PX(6, scale),
-                  sign.y + (m_signSize + 1) / 2,
-                  sign.x + m_signWCenter - SCALE_PX(9, scale),
-                  sign.y + (m_signSize + 1) / 2 - SCALE_PX(3, scale));
+      dc.DrawLine(point.x + m_signWCenter,
+                  point.y + (m_signHeight + 1) / 2 - SCALE_PX(12, scale) + 1,
+                  point.x + m_signWCenter - SCALE_PX(3, scale),
+                  point.y + (m_signHeight + 1) / 2 - SCALE_PX(3, scale));
+      dc.DrawLine(point.x + m_signWCenter - SCALE_PX(3, scale),
+                  point.y + (m_signHeight + 1) / 2 - SCALE_PX(3, scale),
+                  point.x + m_signWCenter - SCALE_PX(6, scale),
+                  point.y + (m_signHeight + 1) / 2);
+      dc.DrawLine(point.x + m_signWCenter - SCALE_PX(6, scale),
+                  point.y + (m_signHeight + 1) / 2,
+                  point.x + m_signWCenter - SCALE_PX(9, scale),
+                  point.y + (m_signHeight + 1) / 2 - SCALE_PX(3, scale));
       // line
-      dc.DrawLine(sign.x + m_signWCenter,
-                  sign.y - (m_signSize + 1) / 2 + SCALE_PX(12, scale) - 1,
-                  sign.x + m_signWCenter,
-                  sign.y + (m_signSize + 1) / 2 - SCALE_PX(12, scale) + 1);
+      dc.DrawLine(point.x + m_signWCenter,
+                  point.y - (m_signHeight + 1) / 2 + SCALE_PX(12, scale) - 1,
+                  point.x + m_signWCenter,
+                  point.y + (m_signHeight + 1) / 2 - SCALE_PX(12, scale) + 1);
       UnsetPen();
-#endif
     }
-
+    else
+    {
+      SetForeground();
+      SetFont(fontsize);
+      dc.DrawText(INTEGRAL_TOP,
+                  point.x,
+                  m_extendHeight/4+point.y - (m_signHeight)/2 + SCALE_PX(1,scale));
+      for(int i=0;i<m_extendNum;i++)
+        dc.DrawText(INTEGRAL_EXTEND,
+                    point.x,
+                    m_extendHeight/4+point.y - m_extendHeight*(m_extendNum+1)/2 + m_extendNum*i + SCALE_PX(1,scale));
+      dc.DrawText(INTEGRAL_BOTTOM,
+                  point.x,
+                  m_extendHeight/4+point.y + m_extendHeight*(m_extendNum-1)/2 +SCALE_PX(1,scale));
+    }
+    
     if (m_intStyle == INT_DEF)
     {
-      under.x += m_signWidth;
-      under.y = point.y + m_signSize / 2 + m_under->GetMaxCenter() + SCALE_PX(2, scale) -
-                m_signSize / 3;
+      under.x = point.x + m_signWidth;
+      under.y = point.y + m_signHeight / 2 + m_under->GetMaxCenter() + SCALE_PX(2, scale) -
+        m_signHeight / 3;
       m_under->DrawList(under, MAX(MC_MIN_SIZE, fontsize - 5));
-
-      if (configuration->CheckTeXFonts())
-        over.x += 2 * m_signWidth;
-      else
-        over.x += m_signWidth;
-
-      over.y = point.y - m_signSize / 2 - m_over->GetMaxDrop() - SCALE_PX(2, scale) +
-               m_signSize / 3;
+      
+      over.x = point.x + m_signWidth;
+      over.y = point.y - m_signHeight / 2 - m_over->GetMaxDrop() - SCALE_PX(2, scale) +
+        m_signHeight / 3;
       m_over->DrawList(over, MAX(MC_MIN_SIZE, fontsize - 5));
-
-      if (configuration->CheckTeXFonts())
-      {
-        base.x += m_signWidth +
-                  MAX(m_over->GetFullWidth(scale) + m_signWidth, m_under->GetFullWidth(scale));
-      }
-      else
-        base.x += m_signWidth +
-                  MAX(m_over->GetFullWidth(scale), m_under->GetFullWidth(scale));
+      
+      base.x = point.x + m_signWidth +
+        MAX(m_over->GetFullWidth(scale), m_under->GetFullWidth(scale));
     }
-
-    else if (configuration->CheckTeXFonts())
-      base.x += 2 * m_signWidth;
     else
-      base.x += m_signWidth;
-
+      base.x += point.x + m_signWidth;
+    base.y = point.y;
+    
     m_base->DrawList(base, fontsize);
-
+    
     var.x = base.x + m_base->GetFullWidth(scale);
+    var.y = point.y;
     m_var->DrawList(var, fontsize);
   }
 }
@@ -518,4 +488,56 @@ void IntCell::SelectInner(wxRect &rect, MathCell **first, MathCell **last)
     *first = this;
     *last = this;
   }
+}
+
+void IntCell::SetFont(int fontsize)
+{
+  Configuration *configuration = (*m_configuration);
+  wxDC &dc = configuration->GetDC();
+  double scale = configuration->GetScale();
+  wxString fontName;
+  wxFontStyle fontStyle;
+  wxFontWeight fontWeight;
+  wxFontEncoding fontEncoding;
+  bool underlined = false;
+
+  // Ensure a sane minimum font size
+  if (fontsize < 4)
+    fontsize = 4;
+  
+  // The font size scales with the worksheet
+  int fontsize1 = (int) (((double) fontsize) * scale + 0.5);
+  
+  wxFont font;
+  font.SetFamily(wxFONTFAMILY_MODERN);
+  switch(m_useUnicode)
+  {
+  case no:
+    // In this case we don't need to set a font
+    return;
+  case currentFont:
+    fontName = configuration->GetFontName(TS_DEFAULT);
+    break;
+  case fallbackFont:
+    fontName = wxT("Linux Libertine");
+    break;
+  case fallbackFont2:
+    fontName = wxT("Linux Libertine O");
+    break;
+  }
+  fontEncoding = configuration->GetFontEncoding();
+  fontName = configuration->GetFontName(TS_DEFAULT);
+  fontStyle = configuration->IsItalic(TS_DEFAULT);
+  fontWeight = configuration->IsBold(TS_DEFAULT);
+  fontName = configuration->GetFontName(TS_DEFAULT);
+  font.SetFaceName(fontName);
+  font.SetEncoding(fontEncoding);
+  font.SetStyle(fontStyle);
+  font.SetWeight(fontWeight);
+  font.SetUnderlined(underlined);
+  font.SetPointSize(fontsize1);
+  if (!font.IsOk())
+    m_useUnicode = no;
+  else
+    dc.SetFont(font);
 }
