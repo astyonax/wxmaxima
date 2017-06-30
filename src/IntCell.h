@@ -81,6 +81,18 @@ public:
     INT_IDEF //!> An indefinite integral, meaning an integral without limits
   };
 
+  //! Use unicode characters for the integral?
+  enum m_useUnicodeTypes
+  {
+    no,
+    currentFont,
+    fallbackFont,
+    fallbackFont2    
+  };
+
+  m_useUnicodeTypes m_useUnicode;
+ 
+
   //! Choose between definite and indefinite integrals
   void SetIntStyle(IntegralType style)
   {
@@ -102,6 +114,8 @@ public:
   void SetParent(MathCell *parent);
 
 protected:
+  //! Set the font used for the integral
+  void SetFont(int fontSize);
   //! The part of the formula that is to be integrated.
   MathCell *m_base;
   //! The lower limit of the integral
@@ -111,7 +125,10 @@ protected:
   //! The integration variable
   MathCell *m_var;
   //! The height of the integral sign
-  int m_signSize;
+  int m_signHeight;
+  int m_signTopHeight, m_signBotHeight, m_extendHeight;
+  //! The number of extensions we need to make the integral use the right height
+  int m_extendNum;
   //! The width of the integral sign
   int m_signWidth;
   //! Is this integral definitive?
