@@ -233,6 +233,7 @@ void IntCell::RecalculateHeight(int fontsize)
   Configuration *configuration = (*m_configuration);
   double scale = configuration->GetScale();
 
+  SetFont(fontsize);
   m_under->RecalculateHeightList(MAX(MC_MIN_SIZE, fontsize - 5));
   m_over->RecalculateHeightList(MAX(MC_MIN_SIZE, fontsize - 5));
   m_base->RecalculateHeightList(fontsize);
@@ -331,13 +332,11 @@ void IntCell::Draw(wxPoint point, int fontsize)
     if (m_intStyle == INT_DEF)
     {
       under.x = point.x + m_signWidth;
-      under.y = point.y + m_signHeight / 2 + m_under->GetMaxCenter() + SCALE_PX(2, scale) -
-        m_signHeight / 3;
+      under.y = point.y + m_signHeight / 2 + m_under->GetMaxCenter() + SCALE_PX(2, scale);
       m_under->DrawList(under, MAX(MC_MIN_SIZE, fontsize - 5));
       
       over.x = point.x + m_signWidth;
-      over.y = point.y - m_signHeight / 2 - m_over->GetMaxDrop() - SCALE_PX(2, scale) +
-        m_signHeight / 3;
+      over.y = point.y - m_signHeight / 2 - m_over->GetMaxDrop() - SCALE_PX(2, scale);
       m_over->DrawList(over, MAX(MC_MIN_SIZE, fontsize - 5));
       
       base.x = point.x + m_signWidth +
