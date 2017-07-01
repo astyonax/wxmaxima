@@ -200,12 +200,10 @@ void IntCell::RecalculateWidths(int fontsize)
 
   if(m_useUnicode == no)
   {
-    m_signHeight = SCALE_PX(50, scale);
     m_signWidth = SCALE_PX(18, scale);
   }
   else
   {
-    m_signHeight = m_signTopHeight + m_extendHeight + m_signBotHeight;
     m_signWidth = signWidth1;
     if(m_signWidth < signWidth2)
       m_signWidth = signWidth2;
@@ -240,19 +238,27 @@ void IntCell::RecalculateHeight(int fontsize)
   m_base->RecalculateHeightList(fontsize);
   m_var->RecalculateHeightList(fontsize);
 
+  if(m_useUnicode == no)
+    m_signHeight = 2*MAX(m_base->GetMaxDrop(),m_base->GetMaxCenter());
+  else
+  {
+    m_signHeight = m_signTopHeight + m_signBotHeight;
+    m_extendNum = (2*MAX(m_base->GetMaxDrop(),m_base->GetMaxCenter()) - m_signHeight + m_extendHeight - 1)/m_extendHeight;
+    m_signHeight += m_extendHeight * m_extendNum;
+  }
+
   if (m_intStyle == INT_DEF)
   {
-      m_center = MAX(m_over->GetMaxHeight() + SCALE_PX(4, scale) + m_signHeight / 2 - m_signHeight / 3,
-                     m_base->GetMaxCenter());
-      m_height = m_center +
-                 MAX(m_under->GetMaxHeight() + SCALE_PX(4, scale) + m_signHeight / 2 - m_signHeight / 3,
-                     m_base->GetMaxDrop());
+    m_height = MAX(
+      m_under->GetMaxHeight() + SCALE_PX(4, scale) + m_signHeight + m_over->GetMaxHeight(),
+      2*MAX(m_base->GetMaxDrop(),m_base->GetMaxCenter()));
+    
+    m_center = MAX(m_height / 2, m_base->GetMaxDrop());
   }
   else
   {
-    m_center = MAX(m_signHeight / 2, m_base->GetMaxCenter());
-    m_height = m_center +
-      MAX(m_signHeight / 2, m_base->GetMaxDrop());
+    m_center = MAX(m_signHeight/2, m_base->GetMaxCenter());
+    m_height = MAX(m_signHeight, 2*MAX(m_base->GetMaxCenter(),m_base->GetMaxDrop()));
   }
 }
 
@@ -310,14 +316,16 @@ void IntCell::Draw(wxPoint point, int fontsize)
       SetFont(fontsize);
       dc.DrawText(INTEGRAL_TOP,
                   point.x,
-                  m_extendHeight/4+point.y - (m_signHeight)/2 + SCALE_PX(1,scale));
+                  point.y - (m_signHeight)/2 + SCALE_PX(1,scale));
       for(int i=0;i<m_extendNum;i++)
         dc.DrawText(INTEGRAL_EXTEND,
                     point.x,
-                    m_extendHeight/4+point.y - m_extendHeight*(m_extendNum+1)/2 + m_extendNum*i + SCALE_PX(1,scale));
+                    point.y - (m_signHeight)/2 + SCALE_PX(1,scale) +
+                    i*m_extendHeight+m_signTopHeight);
       dc.DrawText(INTEGRAL_BOTTOM,
                   point.x,
-                  m_extendHeight/4+point.y + m_extendHeight*(m_extendNum-1)/2 +SCALE_PX(1,scale));
+                    point.y - (m_signHeight)/2 + SCALE_PX(1,scale) +
+                    m_extendNum*m_extendHeight+m_signTopHeight);
     }
     
     if (m_intStyle == INT_DEF)
