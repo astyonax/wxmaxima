@@ -1,3 +1,9 @@
+README 1st
+==========
+In this fork we improve the readability of the Latex output.
+All commits are in the BetterTex branch. 
+
+
 [![Build Status](https://travis-ci.org/andrejv/wxmaxima.svg?branch=master)](https://travis-ci.org/andrejv/wxmaxima)
 
 wxMaxima
